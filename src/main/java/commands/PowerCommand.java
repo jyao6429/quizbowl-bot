@@ -4,16 +4,18 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import quizbowl.QuizbowlHandler;
 
-public class ReadCommand extends Command
+public class PowerCommand extends Command
 {
-	public ReadCommand()
+	public PowerCommand()
 	{
-		this.name = "read";
-		this.help = "start reading";
+		this.name = "15";
+		this.help = "register a power";
+		this.aliases = new String[]{"power"};
 		this.guildOnly = true;
 	}
+
 	@Override protected void execute(CommandEvent event)
 	{
-		QuizbowlHandler.startSession(event);
+		QuizbowlHandler.registerScore(event, 15);
 	}
 }

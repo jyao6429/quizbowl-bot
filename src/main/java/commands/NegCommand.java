@@ -4,16 +4,18 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import quizbowl.QuizbowlHandler;
 
-public class ReadCommand extends Command
+public class NegCommand extends Command
 {
-	public ReadCommand()
+	public NegCommand()
 	{
-		this.name = "read";
-		this.help = "start reading";
+		this.name = "-5";
+		this.help = "register a neg";
+		this.aliases = new String[]{"neg", "neg 5"};
 		this.guildOnly = true;
 	}
+
 	@Override protected void execute(CommandEvent event)
 	{
-		QuizbowlHandler.startSession(event);
+		QuizbowlHandler.registerScore(event, -5);
 	}
 }

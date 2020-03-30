@@ -4,16 +4,18 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import quizbowl.QuizbowlHandler;
 
-public class ReadCommand extends Command
+public class ContinueCommand extends Command
 {
-	public ReadCommand()
+	public ContinueCommand()
 	{
-		this.name = "read";
-		this.help = "start reading";
+		this.name = "next";
+		this.help = "continue to the next tossup";
+		this.aliases = new String[]{"continue"};
 		this.guildOnly = true;
 	}
+
 	@Override protected void execute(CommandEvent event)
 	{
-		QuizbowlHandler.startSession(event);
+		QuizbowlHandler.continueTU(event);
 	}
 }

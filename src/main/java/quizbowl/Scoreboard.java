@@ -14,9 +14,9 @@ import java.util.HashMap;
 
 public class Scoreboard
 {
-	HashMap<Member, Player> players;
-	ArrayList<Player> playerList;
-	Session session;
+	private HashMap<Member, Player> players;
+	private ArrayList<Player> playerList;
+	private Session session;
 
 	public Scoreboard(Session s)
 	{
@@ -64,7 +64,7 @@ public class Scoreboard
 		}
 		MessageEmbed embed = new EmbedBuilder()
 				.setTitle("Scoreboard")
-			.setDescription("#" + session.getChannel())
+			.setDescription("#" + session.getChannel() + "\nToss Ups: " + session.getTossup())
 			.setTimestamp(OffsetDateTime.now())
 			.setThumbnail("https://cdn.discordapp.com/embed/avatars/0.png")
 			.addField("Scores", scores, false)

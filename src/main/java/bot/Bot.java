@@ -3,7 +3,8 @@ package bot;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.AboutCommand;
-import commands.ReadCommand;
+import com.jagrosh.jdautilities.examples.command.PingCommand;
+import commands.*;
 import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -19,6 +20,9 @@ import java.util.List;
 
 public class Bot
 {
+	public final static Permission[] RECOMMENDED_PERMS = new Permission[]{Permission.MESSAGE_READ, Permission.MESSAGE_WRITE, Permission.MESSAGE_HISTORY, Permission.MESSAGE_ADD_REACTION,
+			Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ATTACH_FILES};
+
 	public static void main(String[] args) throws LoginException
 	{
 		// Import config file
@@ -53,17 +57,24 @@ public class Bot
 		client.addCommands(
 				new AboutCommand(Color.BLUE, "a quizbowl scorekeeping bot",
 						new String[]{"Read stuff","Buzz","Score stuff"},
-						new Permission[]{Permission.ADMINISTRATOR}),
-
-				new ReadCommand());
+						RECOMMENDED_PERMS),
+				new PingCommand(),
+				new BuzzCommand(),
+				new ChangeReaderCommand(),
+				new ContinueCommand(),
+				new NegCommand(),
+				new PowerCommand(),
+				new ReadCommand(),
+				new StopCommand(),
+				new TenCommand(),
+				new UndoCommand(),
+				new ZeroCommand());
 
 		new JDABuilder(botToken)
 				// set the game for when the bot is loading
 				.setStatus(OnlineStatus.DO_NOT_DISTURB)
 				.setActivity(Activity.playing("loading..."))
-
 				.addEventListeners(waiter, client.build())
-
 				.build();
 	}
 }

@@ -4,16 +4,17 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import quizbowl.QuizbowlHandler;
 
-public class ReadCommand extends Command
+public class UndoCommand extends Command
 {
-	public ReadCommand()
+	public UndoCommand()
 	{
-		this.name = "read";
-		this.help = "start reading";
+		this.name = "undo";
+		this.help = "undo the last scoring command";
 		this.guildOnly = true;
 	}
+
 	@Override protected void execute(CommandEvent event)
 	{
-		QuizbowlHandler.startSession(event);
+		QuizbowlHandler.undoScore(event);
 	}
 }

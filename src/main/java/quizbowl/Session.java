@@ -1,5 +1,6 @@
 package quizbowl;
 
+import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -13,16 +14,16 @@ public class Session
 		BUZZED
 	}
 
-	TextChannel channel;
-	Scoreboard scoreboard;
-	Member reader, buzzer;
-	int tossup, prevScoreChange;
-	QBState state;
+	private TextChannel channel;
+	private Scoreboard scoreboard;
+	private Member reader, buzzer;
+	private int tossup, prevScoreChange;
+	private QBState state;
 
-	public Session(TextChannel t, Member r)
+	public Session(CommandEvent event)
 	{
-		channel = t;
-		startSession(r);
+		channel = event.getTextChannel();
+		startSession(event);
 	}
 	public void registerBuzz(CommandEvent event)
 	{
@@ -36,61 +37,110 @@ public class Session
 	}
 	public void registerScore(CommandEvent event, int toAdd)
 	{
-		if (event.getMember().equals(reader) && state == QBState.BUZZED)
+		if (!event.getMember().equals(reader))
 		{
-			scoreboard.addScore(buzzer, toAdd);
-			prevScoreChange = toAdd;
-			state = QBState.READING;
+			event.replyWarning("You are not the reader");
+			return;
+		}
+		if (state != QBState.BUZZED)
+		{
+			event.replyWarning("Nobody has buzzed");
+			return;
+		}
 
-			if (toAdd > 0)
-			{
-				tossup++;
-				channel.sendMessage("Toss Up: " + tossup).queue();
-			}
-		}
-	}
-	public void undoScore(CommandEvent event)
-	{
-		if (event.getMember().equals(reader) && state == QBState.READING)
-		{
-			scoreboard.addScore(buzzer, -prevScoreChange);
-			if (prevScoreChange > 0)
-				tossup--;
-			prevScoreChange = 0;
-			state = QBState.BUZZED;
-		}
-	}
-	public void continueTU(CommandEvent event)
-	{
-		if (event.getMember().equals(reader) && state == QBState.READING)
+		scoreboard.addScore(buzzer, toAdd);
+		prevScoreChange = toAdd;
+		state = QBState.READING;
+
+		if (toAdd > 0)
 		{
 			tossup++;
 			channel.sendMessage("Toss Up: " + tossup).queue();
 		}
 	}
+	public void undoScore(CommandEvent event)
+	{
+		if (!event.getMember().equals(reader))
+		{
+			event.replyWarning("You are not the reader");
+			return;
+		}
+		if (state != QBState.READING || tossup == 1)
+		{
+			event.replyWarning("Nothing to undo");
+			return;
+		}
+
+		scoreboard.addScore(buzzer, -prevScoreChange);
+		if (prevScoreChange > 0)
+			tossup--;
+		prevScoreChange = 0;
+		state = QBState.BUZZED;
+	}
+	public void continueTU(CommandEvent event)
+	{
+		if (!event.getMember().equals(reader))
+		{
+			event.replyWarning("You are not the reader");
+			return;
+		}
+		if (state != QBState.READING)
+		{
+			event.replyWarning("Can't continue, has someone buzzed?");
+			return;
+		}
+
+		tossup++;
+		channel.sendMessage("Toss Up: " + tossup).queue();
+	}
 	public void changeReader(CommandEvent event, Member newReader)
 	{
-		if (event.getMember().equals(reader) && state == QBState.READING)
+		if (!event.getMember().equals(reader))
 		{
-			reader = newReader;
+			event.replyWarning("You are not the reader");
+			return;
 		}
+		if (state != QBState.READING)
+		{
+			event.replyWarning("Can't change readers, has someone buzzed?");
+			return;
+		}
+		reader = newReader;
 	}
-	public void startSession(Member r)
+	public void startSession(CommandEvent event)
 	{
+		if (state != QBState.STOPPED)
+		{
+			event.replyWarning("There is already an ongoing session");
+			return;
+		}
 		scoreboard = new Scoreboard(this);
-		reader = r;
+		reader = event.getMember();
 		tossup = 1;
 		state = QBState.READING;
 		channel.sendMessage("Toss Up: " + tossup).queue();
 	}
-	public void stopSession()
+	public void stopSession(CommandEvent event)
 	{
+		if (!event.getMember().equals(reader))
+		{
+			event.replyWarning("You are not the reader");
+			return;
+		}
+		if (state != QBState.READING)
+		{
+			event.replyWarning("Can't stop, has someone buzzed?");
+			return;
+		}
+
+		printScores();
 		scoreboard = null;
 		reader = null;
 		buzzer = null;
 		tossup = 1;
 		prevScoreChange = 0;
 		state = QBState.STOPPED;
+		event.reply("Session stopped");
 	}
 	public Scoreboard getScoreboard()
 	{
@@ -111,5 +161,9 @@ public class Session
 	public QBState getState()
 	{
 		return state;
+	}
+	public int getTossup()
+	{
+		return tossup;
 	}
 }
