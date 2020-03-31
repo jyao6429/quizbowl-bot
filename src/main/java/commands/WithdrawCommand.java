@@ -9,7 +9,7 @@ public class WithdrawCommand extends Command
 	public WithdrawCommand()
 	{
 		this.name = "withdraw";
-		this.help = "removes your buzz from the queue";
+		this.help = "removes your buzz from the queue if you are not the first buzzer";
 		this.aliases = new String[]{"wd"};
 		this.guildOnly = true;
 	}

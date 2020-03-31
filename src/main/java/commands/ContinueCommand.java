@@ -9,7 +9,7 @@ public class ContinueCommand extends Command
 	public ContinueCommand()
 	{
 		this.name = "next";
-		this.help = "continue to the next tossup";
+		this.help = "continue to the next tossup if the current one is dead";
 		this.aliases = new String[]{"continue"};
 		this.guildOnly = true;
 	}

@@ -9,7 +9,7 @@ public class ZeroCommand extends Command
 	public ZeroCommand()
 	{
 		this.name = "0";
-		this.help = "register a no penalty";
+		this.help = "register a no-penalty";
 		this.aliases = new String[]{"zero"};
 		this.guildOnly = true;
 	}

@@ -63,20 +63,20 @@ public class Bot
 				new AboutCommand(Color.BLUE, "a quizbowl scorekeeping bot",
 						new String[]{"Read stuff","Buzz","Score stuff"},
 						RECOMMENDED_PERMS),
-				new PingCommand(),
-				new BuzzCommand(),
-				new ChangeReaderCommand(),
-				new ClearCommand(),
-				new ContinueCommand(),
-				new NegCommand(),
-				new PowerCommand(),
 				new ReadCommand(),
-				new ScoreCommand(),
-				new StopCommand(),
+				new BuzzCommand(),
+				new PowerCommand(),
 				new TenCommand(),
+				new ZeroCommand(),
+				new NegCommand(),
+				new ScoreCommand(),
+				new ContinueCommand(),
+				new StopCommand(),
 				new UndoCommand(),
 				new WithdrawCommand(),
-				new ZeroCommand());
+				new ClearCommand(),
+				new ChangeReaderCommand(),
+				new PingCommand());
 
 		new JDABuilder(botToken)
 				// set the game for when the bot is loading

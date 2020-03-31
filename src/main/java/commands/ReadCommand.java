@@ -9,7 +9,7 @@ public class ReadCommand extends Command
 	public ReadCommand()
 	{
 		this.name = "read";
-		this.help = "start reading";
+		this.help = "start reading as the reader";
 		this.guildOnly = true;
 	}
 	@Override protected void execute(CommandEvent event)
