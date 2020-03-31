@@ -57,6 +57,6 @@ public class Player implements Comparable<Player>
 	}
 	public String toString()
 	{
-		return member.getAsMention() + " - " + score + " pts " + "(15: " + powers + " | 10: " + tens + " | -5: " + negs + ")";
+		return member.getAsMention() + " - **" + score + "** pts " + "(15: **" + powers + "** | 10: **" + tens + "** | -5: **" + negs + "**)";
 	}
 }
