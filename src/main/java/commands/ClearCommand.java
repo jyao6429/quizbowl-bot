@@ -4,18 +4,17 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import quizbowl.QuizbowlHandler;
 
-public class BuzzCommand extends Command
+public class ClearCommand extends Command
 {
-	public BuzzCommand()
+	public ClearCommand()
 	{
-		this.name = "buzz";
-		this.help = "adds you to the buzz queue";
-		this.aliases = new String[]{"b", "bz", "buzzz"};
+		this.name = "clear";
+		this.help = "clears the buzz queue";
 		this.guildOnly = true;
 	}
 
 	@Override protected void execute(CommandEvent event)
 	{
-		QuizbowlHandler.registerBuzz(event);
+		QuizbowlHandler.clearBuzzQueue(event);
 	}
 }

@@ -5,6 +5,8 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 
+import java.util.*;
+
 public class Session
 {
 	enum QBState
@@ -16,27 +18,52 @@ public class Session
 
 	private TextChannel channel;
 	private Scoreboard scoreboard;
-	private Member reader, buzzer;
-	private int tossup, prevScoreChange;
+	private Member reader;
+	private int tossup;
 	private QBState state;
+	private Stack<BuzzEvent> lockedOut;
+	private ArrayList<BuzzEvent> buzzQueue;
+	private BuzzEvent prevTUBuzz;
 
 	public Session(CommandEvent event)
 	{
 		channel = event.getTextChannel();
+		state = QBState.STOPPED;
 		startSession(event);
+	}
+	private void goToNextTU()
+	{
+		tossup++;
+		state = QBState.READING;
+		lockedOut = new Stack<>();
+		buzzQueue = new ArrayList<>();
+		channel.sendMessage("Toss Up: " + tossup).queue();
 	}
 	public void registerBuzz(CommandEvent event)
 	{
-		if (state == QBState.BUZZED)
+		if (state == QBState.STOPPED)
+		{
+			event.replyError("There is no active session in this text channel");
 			return;
-
-		buzzer = event.getMember();
+		}
+		BuzzEvent newBuzz = new BuzzEvent(event);
+		if (lockedOut.contains(newBuzz) || buzzQueue.contains(newBuzz))
+		{
+			event.replyWarning(event.getMember().getAsMention() + " You have already buzzed!");
+			return;
+		}
+		newBuzz.isFirst = buzzQueue.isEmpty();
+		buzzQueue.add(newBuzz);
+		event.reactSuccess();
 		state = QBState.BUZZED;
-
-		event.reply(event.getMember().getAsMention() + " buzzed");
 	}
 	public void registerScore(CommandEvent event, int toAdd)
 	{
+		if (state == QBState.STOPPED)
+		{
+			event.replyError("There is no active session in this text channel");
+			return;
+		}
 		if (!event.getMember().equals(reader))
 		{
 			event.replyWarning("You are not the reader");
@@ -48,37 +75,124 @@ public class Session
 			return;
 		}
 
-		scoreboard.addScore(buzzer, toAdd);
-		prevScoreChange = toAdd;
-		state = QBState.READING;
+		BuzzEvent currentBuzz = buzzQueue.remove(0);
+		scoreboard.addScore(currentBuzz.member, toAdd);
+		lockedOut.push(currentBuzz);
+
+		event.reactSuccess();
 
 		if (toAdd > 0)
 		{
-			tossup++;
-			channel.sendMessage("Toss Up: " + tossup).queue();
+			prevTUBuzz = currentBuzz;
+			goToNextTU();
+		}
+		if (buzzQueue.size() == 0)
+		{
+			state = QBState.READING;
 		}
 	}
 	public void undoScore(CommandEvent event)
 	{
+		if (state == QBState.STOPPED)
+		{
+			event.replyError("There is no active session in this text channel");
+			return;
+		}
 		if (!event.getMember().equals(reader))
 		{
 			event.replyWarning("You are not the reader");
 			return;
 		}
-		if (state != QBState.READING || tossup == 1)
+
+		BuzzEvent toUndo;
+
+		if (lockedOut.empty() && tossup == 1)
 		{
 			event.replyWarning("Nothing to undo");
 			return;
 		}
-
-		scoreboard.addScore(buzzer, -prevScoreChange);
-		if (prevScoreChange > 0)
+		if (lockedOut.empty())
+		{
+			toUndo = prevTUBuzz;
 			tossup--;
-		prevScoreChange = 0;
+		}
+		else
+		{
+			toUndo = lockedOut.pop();
+		}
+		scoreboard.addScore(toUndo.member, -toUndo.scoreChange);
+		buzzQueue.add(0, toUndo);
+
+		event.reactSuccess();
+
 		state = QBState.BUZZED;
+	}
+	public void withdrawBuzz(CommandEvent event)
+	{
+		if (state == QBState.STOPPED)
+		{
+			event.replyError("There is no active session in this text channel");
+			return;
+		}
+		if (state != QBState.BUZZED)
+		{
+			event.replyWarning("Nothing to withdraw");
+			return;
+		}
+
+		int index = buzzQueue.indexOf(new BuzzEvent(event));
+		if (index < 0)
+		{
+			event.reactError();
+		}
+		else
+		{
+			BuzzEvent toRemove = buzzQueue.get(index);
+			if (toRemove.isFirst)
+			{
+				event.replyWarning("You are the first buzzer, you cannot withdraw!");
+				return;
+			}
+			else
+			{
+				buzzQueue.remove(index);
+				event.reactSuccess();
+			}
+		}
+		if (buzzQueue.isEmpty())
+		{
+			state = QBState.READING;
+		}
+	}
+	public void clearBuzzQueue(CommandEvent event)
+	{
+		if (state == QBState.STOPPED)
+		{
+			event.replyError("There is no active session in this text channel");
+			return;
+		}
+		if (!event.getMember().equals(reader))
+		{
+			event.replyWarning("You are not the reader");
+			return;
+		}
+		if (state != QBState.BUZZED)
+		{
+			event.replyWarning("Nothing to clear");
+			return;
+		}
+
+		buzzQueue.clear();
+		state = QBState.READING;
+		event.replySuccess("Cleared the buzz queue");
 	}
 	public void continueTU(CommandEvent event)
 	{
+		if (state == QBState.STOPPED)
+		{
+			event.replyError("There is no active session in this text channel");
+			return;
+		}
 		if (!event.getMember().equals(reader))
 		{
 			event.replyWarning("You are not the reader");
@@ -86,15 +200,19 @@ public class Session
 		}
 		if (state != QBState.READING)
 		{
-			event.replyWarning("Can't continue, has someone buzzed?");
+			event.replyWarning("Can't continue, someone has buzzed!");
 			return;
 		}
-
-		tossup++;
-		channel.sendMessage("Toss Up: " + tossup).queue();
+		goToNextTU();
+		event.reactSuccess();
 	}
 	public void changeReader(CommandEvent event, Member newReader)
 	{
+		if (state == QBState.STOPPED)
+		{
+			event.replyError("There is no active session in this text channel");
+			return;
+		}
 		if (!event.getMember().equals(reader))
 		{
 			event.replyWarning("You are not the reader");
@@ -102,26 +220,32 @@ public class Session
 		}
 		if (state != QBState.READING)
 		{
-			event.replyWarning("Can't change readers, has someone buzzed?");
+			event.replyWarning("Can't change readers, someone has buzzed!");
 			return;
 		}
 		reader = newReader;
+		event.reactSuccess();
 	}
 	public void startSession(CommandEvent event)
 	{
 		if (state != QBState.STOPPED)
 		{
-			event.replyWarning("There is already an ongoing session");
+			event.replyError("There is already an ongoing session");
 			return;
 		}
 		scoreboard = new Scoreboard(this);
 		reader = event.getMember();
-		tossup = 1;
+		tossup = 0;
 		state = QBState.READING;
-		channel.sendMessage("Toss Up: " + tossup).queue();
+		goToNextTU();
 	}
 	public void stopSession(CommandEvent event)
 	{
+		if (state == QBState.STOPPED)
+		{
+			event.replyError("There is no active session to stop");
+			return;
+		}
 		if (!event.getMember().equals(reader))
 		{
 			event.replyWarning("You are not the reader");
@@ -129,18 +253,19 @@ public class Session
 		}
 		if (state != QBState.READING)
 		{
-			event.replyWarning("Can't stop, has someone buzzed?");
+			event.replyWarning("Can't stop, someone has buzzed!");
 			return;
 		}
 
 		printScores();
 		scoreboard = null;
 		reader = null;
-		buzzer = null;
-		tossup = 1;
-		prevScoreChange = 0;
+		prevTUBuzz = null;
+		lockedOut = null;
+		buzzQueue = null;
+		tossup = 0;
 		state = QBState.STOPPED;
-		event.reply("Session stopped");
+		event.replySuccess("Session stopped");
 	}
 	public Scoreboard getScoreboard()
 	{
@@ -165,5 +290,23 @@ public class Session
 	public int getTossup()
 	{
 		return tossup;
+	}
+}
+class BuzzEvent
+{
+	public CommandEvent event;
+	public Member member;
+	public int scoreChange;
+	public boolean isFirst;
+
+	public BuzzEvent(CommandEvent event)
+	{
+		this.event = event;
+		member = event.getMember();
+	}
+	public boolean equals(Object o)
+	{
+		BuzzEvent other = (BuzzEvent) o;
+		return this.member.equals(other.member);
 	}
 }

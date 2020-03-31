@@ -4,18 +4,18 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import quizbowl.QuizbowlHandler;
 
-public class BuzzCommand extends Command
+public class ScoreCommand extends Command
 {
-	public BuzzCommand()
+	public ScoreCommand()
 	{
-		this.name = "buzz";
-		this.help = "adds you to the buzz queue";
-		this.aliases = new String[]{"b", "bz", "buzzz"};
+		this.name = "score";
+		this.help = "print the current scores";
+		this.aliases = new String[]{"leaderboard"};
 		this.guildOnly = true;
 	}
 
 	@Override protected void execute(CommandEvent event)
 	{
-		QuizbowlHandler.registerBuzz(event);
+		QuizbowlHandler.printScores(event);
 	}
 }

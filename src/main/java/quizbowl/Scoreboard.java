@@ -36,11 +36,11 @@ public class Scoreboard
 	public Player getPlayer(Member member)
 	{
 		Player player;
-		try
+		if (players.containsKey(member))
 		{
 			player = players.get(member);
 		}
-		catch (Exception ex)
+		else
 		{
 			player = new Player(member, this);
 			playerList.add(player);
@@ -56,18 +56,18 @@ public class Scoreboard
 	{
 		Collections.sort(playerList);
 
-		String scores = "";
+		StringBuilder scores = new StringBuilder();
 		for (int i = 0; i < playerList.size(); i++)
 		{
 			Player currentPlayer = playerList.get(i);
-			scores += (i + 1) + ". " + currentPlayer + "\n";
+			scores.append(i + 1).append(". ").append(currentPlayer).append("\n");
 		}
 		MessageEmbed embed = new EmbedBuilder()
 				.setTitle("Scoreboard")
-			.setDescription("#" + session.getChannel() + "\nToss Ups: " + session.getTossup())
+			.setDescription("#" + session.getChannel().getName() + "\nToss Ups: " + session.getTossup())
 			.setTimestamp(OffsetDateTime.now())
 			.setThumbnail("https://cdn.discordapp.com/embed/avatars/0.png")
-			.addField("Scores", scores, false)
+			.addField("Scores", scores.toString(), false)
 			.build();
 
 		session.getChannel().sendMessage(embed).queue();

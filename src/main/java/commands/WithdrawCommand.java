@@ -4,18 +4,18 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import quizbowl.QuizbowlHandler;
 
-public class BuzzCommand extends Command
+public class WithdrawCommand extends Command
 {
-	public BuzzCommand()
+	public WithdrawCommand()
 	{
-		this.name = "buzz";
-		this.help = "adds you to the buzz queue";
-		this.aliases = new String[]{"b", "bz", "buzzz"};
+		this.name = "withdraw";
+		this.help = "removes your buzz from the queue";
+		this.aliases = new String[]{"wd"};
 		this.guildOnly = true;
 	}
 
 	@Override protected void execute(CommandEvent event)
 	{
-		QuizbowlHandler.registerBuzz(event);
+		QuizbowlHandler.withdrawBuzz(event);
 	}
 }

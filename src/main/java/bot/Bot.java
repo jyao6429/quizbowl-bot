@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Activity;
+import quizbowl.QuizbowlHandler;
 
 import javax.security.auth.login.LoginException;
 import java.awt.*;
@@ -22,6 +23,9 @@ public class Bot
 {
 	public final static Permission[] RECOMMENDED_PERMS = new Permission[]{Permission.MESSAGE_READ, Permission.MESSAGE_WRITE, Permission.MESSAGE_HISTORY, Permission.MESSAGE_ADD_REACTION,
 			Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ATTACH_FILES};
+	public final static String SUCCESS_EMOJI = "\u2705";
+	public final static String WARNING_EMOJI = "\u26A0";
+	public final static String ERROR_EMOJI = "\u274C";
 
 	public static void main(String[] args) throws LoginException
 	{
@@ -43,6 +47,7 @@ public class Bot
 		String ownerID = list.get(1);
 		String prefix = list.get(2);
 		String[] categories = list.get(3).split(",");
+		QuizbowlHandler.setCategories(categories);
 
 		// Build the client
 		EventWaiter waiter = new EventWaiter();
@@ -50,7 +55,7 @@ public class Bot
 		CommandClientBuilder client = new CommandClientBuilder();
 		client.useDefaultGame();
 		client.setOwnerId(ownerID);
-		client.setEmojis("\uD83D\uDE03", "\uD83D\uDE2E", "\uD83D\uDE26");
+		client.setEmojis(SUCCESS_EMOJI, WARNING_EMOJI, ERROR_EMOJI);
 		client.setPrefix(prefix);
 
 		// Add commands
@@ -61,13 +66,16 @@ public class Bot
 				new PingCommand(),
 				new BuzzCommand(),
 				new ChangeReaderCommand(),
+				new ClearCommand(),
 				new ContinueCommand(),
 				new NegCommand(),
 				new PowerCommand(),
 				new ReadCommand(),
+				new ScoreCommand(),
 				new StopCommand(),
 				new TenCommand(),
 				new UndoCommand(),
+				new WithdrawCommand(),
 				new ZeroCommand());
 
 		new JDABuilder(botToken)
