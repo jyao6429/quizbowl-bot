@@ -66,7 +66,7 @@ public class Scoreboard
 				.setTitle("Scoreboard")
 			.setDescription("#" + session.getChannel().getName() + "\nToss Ups: " + session.getTossup())
 			.setTimestamp(OffsetDateTime.now())
-			.setThumbnail("https://raw.githubusercontent.com/jyao6429/quizbowl-bot/master/images/qbat%20icon%20low%20res.jpg")
+			.setThumbnail("https://raw.githubusercontent.com/jyao6429/quizbowl-bot/master/images/qbat%20icon%20square.png")
 			.addField("Scores", scores.toString(), false)
 			.build();
 
