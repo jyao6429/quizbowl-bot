@@ -5,7 +5,6 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.AboutCommand;
 import com.jagrosh.jdautilities.examples.command.PingCommand;
 import commands.*;
-import net.dv8tion.jda.api.AccountType;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.Permission;

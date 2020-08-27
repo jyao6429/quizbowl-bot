@@ -1,11 +1,8 @@
 package quizbowl;
 
-import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.TextChannel;
-import org.apache.commons.collections4.list.TreeList;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;

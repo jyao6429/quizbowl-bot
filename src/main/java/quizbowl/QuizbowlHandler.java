@@ -6,7 +6,6 @@ import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 
 public class QuizbowlHandler
