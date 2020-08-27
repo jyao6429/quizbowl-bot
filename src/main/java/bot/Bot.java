@@ -77,11 +77,11 @@ public class Bot
 				new ChangeReaderCommand(),
 				new PingCommand());
 
-		new JDABuilder(botToken)
+		JDABuilder.createDefault(botToken)
 				// set the game for when the bot is loading
-				.setStatus(OnlineStatus.DO_NOT_DISTURB)
-				.setActivity(Activity.playing("loading..."))
-				.addEventListeners(waiter, client.build())
-				.build();
+				  .setStatus(OnlineStatus.DO_NOT_DISTURB)
+				  .setActivity(Activity.playing("loading..."))
+				  .addEventListeners(waiter, client.build())
+				  .build();
 	}
 }
