@@ -19,18 +19,24 @@ public class QuizbowlHandler
 	}
 	public static void startSession(CommandEvent event)
 	{
+		startSession(event, 0);
+	}
+	public static void startSession(CommandEvent event, int numOfBonuses)
+	{
+		/*
 		if (!categories.contains(event.getTextChannel().getName()))
 		{
 			event.replyWarning("Please use this bot in dedicated quiz bowl channels!");
 			return;
 		}
+		*/
 		if (sessions.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).startSession(event);
+			sessions.get(event.getTextChannel()).startSession(event, numOfBonuses);
 		}
 		else
 		{
-			sessions.put(event.getTextChannel(), new Session(event));
+			sessions.put(event.getTextChannel(), new Session(event, numOfBonuses));
 		}
 	}
 	public static void stopSession(CommandEvent event)

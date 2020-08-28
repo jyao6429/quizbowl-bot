@@ -24,7 +24,11 @@ public class Scoreboard
 
 	public void addScore(Member member, int toAdd)
 	{
-		getPlayer(member).add(toAdd);
+		addScore(member, toAdd, false);
+	}
+	public void addScore(Member member, int toAdd, boolean isBonus)
+	{
+		getPlayer(member).add(toAdd, isBonus);
 	}
 	public int getScore(Member member)
 	{

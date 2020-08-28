@@ -13,37 +13,55 @@ public class Session
 	{
 		STOPPED,
 		READING,
-		BUZZED
+		BUZZED,
+		BONUS
 	}
 
 	private TextChannel channel;
 	private Scoreboard scoreboard;
 	private Member reader;
-	private int tossup;
+	private int tossup, numOfBonuses, bonus;
 	private QBState state;
 	private Stack<BuzzEvent> lockedOut;
 	private ArrayList<BuzzEvent> buzzQueue;
 	private BuzzEvent prevTUBuzz;
 
-	public Session(CommandEvent event)
+	public Session(CommandEvent event, int bonusNum)
 	{
 		channel = event.getTextChannel();
 		state = QBState.STOPPED;
-		startSession(event);
+		startSession(event, bonusNum);
 	}
 	private void goToNextTU()
 	{
 		tossup++;
+		bonus = 0;
 		state = QBState.READING;
 		lockedOut = new Stack<>();
 		buzzQueue = new ArrayList<>();
 		channel.sendMessage("Toss Up: " + tossup).queue();
+	}
+	private void goToNextBonus()
+	{
+		bonus++;
+		if (bonus > numOfBonuses)
+		{
+			goToNextTU();
+			return;
+		}
+		state = QBState.BONUS;
+		channel.sendMessage("Bonus: " + tossup + "-" + bonus).queue();
 	}
 	public void registerBuzz(CommandEvent event)
 	{
 		if (state == QBState.STOPPED)
 		{
 			event.replyError("There is no active session in this text channel");
+			return;
+		}
+		if (state == QBState.BONUS)
+		{
+			event.replyError("There is currently a bonus");
 			return;
 		}
 		BuzzEvent newBuzz = new BuzzEvent(event);
@@ -69,24 +87,39 @@ public class Session
 			event.replyWarning("You are not the reader");
 			return;
 		}
-		if (state != QBState.BUZZED)
+		if (state != QBState.BUZZED && state != QBState.BONUS)
 		{
 			event.replyWarning("Nobody has buzzed");
 			return;
 		}
-
-		BuzzEvent currentBuzz = buzzQueue.remove(0);
-		scoreboard.addScore(currentBuzz.member, toAdd);
+		BuzzEvent currentBuzz = new BuzzEvent(event);
+		if (state == QBState.BUZZED)
+		{
+			currentBuzz = buzzQueue.remove(0);
+			scoreboard.addScore(currentBuzz.member, toAdd);
+		}
+		else if (state == QBState.BONUS && (toAdd == 10 || toAdd == 0))
+		{
+			currentBuzz.isBonus = true;
+			currentBuzz.member = lockedOut.peek().member;
+			scoreboard.addScore(currentBuzz.member, toAdd, true);
+		}
+		else
+		{
+			event.replyWarning("Bonuses can only be 10 or 0 pts");
+			return;
+		}
+		currentBuzz.scoreChange = toAdd;
 		lockedOut.push(currentBuzz);
 
 		event.reactSuccess();
 
-		if (toAdd > 0)
+		if ((toAdd > 0 && state == QBState.BUZZED) || state == QBState.BONUS)
 		{
 			prevTUBuzz = currentBuzz;
-			goToNextTU();
+			goToNextBonus();
 		}
-		if (buzzQueue.size() == 0)
+		if (buzzQueue.size() == 0 && state != QBState.BONUS)
 		{
 			state = QBState.READING;
 		}
@@ -115,17 +148,31 @@ public class Session
 		{
 			toUndo = prevTUBuzz;
 			tossup--;
+			bonus = numOfBonuses;
 		}
 		else
 		{
 			toUndo = lockedOut.pop();
+			if (bonus > 0)
+				bonus--;
 		}
-		scoreboard.addScore(toUndo.member, -toUndo.scoreChange);
-		buzzQueue.add(0, toUndo);
+		scoreboard.addScore(toUndo.member, -toUndo.scoreChange, toUndo.isBonus);
 
+		if (toUndo.isBonus)
+		{
+			if (lockedOut.isEmpty())
+			{
+				lockedOut.push(toUndo);
+				toUndo.scoreChange = 0;
+			}
+			state = QBState.BONUS;
+		}
+		else
+		{
+			buzzQueue.add(0, toUndo);
+			state = QBState.BUZZED;
+		}
 		event.reactSuccess();
-
-		state = QBState.BUZZED;
 	}
 	public void withdrawBuzz(CommandEvent event)
 	{
@@ -226,7 +273,7 @@ public class Session
 		reader = newReader;
 		event.reactSuccess();
 	}
-	public void startSession(CommandEvent event)
+	public void startSession(CommandEvent event, int bonusNum)
 	{
 		if (state != QBState.STOPPED)
 		{
@@ -236,6 +283,8 @@ public class Session
 		scoreboard = new Scoreboard(this);
 		reader = event.getMember();
 		tossup = 0;
+		bonus = 0;
+		numOfBonuses = bonusNum;
 		state = QBState.READING;
 		goToNextTU();
 	}
@@ -264,6 +313,8 @@ public class Session
 		lockedOut = null;
 		buzzQueue = null;
 		tossup = 0;
+		bonus = 0;
+		numOfBonuses = 0;
 		state = QBState.STOPPED;
 		event.replySuccess("Session stopped");
 	}
@@ -291,13 +342,17 @@ public class Session
 	{
 		return tossup;
 	}
+	public int getNumOfBonuses()
+	{
+		return numOfBonuses;
+	}
 }
 class BuzzEvent
 {
 	public CommandEvent event;
 	public Member member;
 	public int scoreChange;
-	public boolean isFirst;
+	public boolean isFirst, isBonus;
 
 	public BuzzEvent(CommandEvent event)
 	{
