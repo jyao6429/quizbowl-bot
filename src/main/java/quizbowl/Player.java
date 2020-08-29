@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 public class Player implements Comparable<Player>
 {
 	private Member member;
-	private int score, tens, powers, negs;
+	private int score, tens, powers, negs, bonuses;
 	private Scoreboard scoreboard;
 
 	public Player(Member m, Scoreboard s)
@@ -15,6 +15,10 @@ public class Player implements Comparable<Player>
 		scoreboard = s;
 	}
 	public void add(int toAdd)
+	{
+		add(toAdd, false);
+	}
+	public void add(int toAdd, boolean isBonus)
 	{
 		switch (toAdd)
 		{
@@ -25,10 +29,16 @@ public class Player implements Comparable<Player>
 				powers--;
 				break;
 			case 10:
-				tens++;
+				if (isBonus)
+					bonuses++;
+				else
+					tens++;
 				break;
 			case -10:
-				tens--;
+				if (isBonus)
+					bonuses--;
+				else
+					tens--;
 				break;
 			case -5:
 				negs++;
@@ -57,6 +67,12 @@ public class Player implements Comparable<Player>
 	}
 	public String toString()
 	{
-		return member.getAsMention() + " - **" + score + "** pts " + "(15: **" + powers + "** | 10: **" + tens + "** | -5: **" + negs + "**)";
+		String toReturn = String.format("%s - **%d** pts (15: **%d** | 10: **%d** | -5: **%d**", member.getAsMention(), score, powers, tens, negs);
+		if (scoreboard.getSession().getNumOfBonuses() > 0)
+		{
+			toReturn += " | B: **" + bonuses + "**";
+		}
+		toReturn += ")";
+		return toReturn;
 	}
 }
