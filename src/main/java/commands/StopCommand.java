@@ -16,6 +16,6 @@ public class StopCommand extends Command
 
 	@Override protected void execute(CommandEvent event)
 	{
-		QuizbowlHandler.stopSession(event);
+		QuizbowlHandler.stopMatch(event);
 	}
 }

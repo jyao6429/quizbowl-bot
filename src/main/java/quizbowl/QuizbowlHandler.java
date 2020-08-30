@@ -10,18 +10,18 @@ import java.util.HashMap;
 
 public class QuizbowlHandler
 {
-	private static HashMap<TextChannel, Session> sessions = new HashMap<>();
+	private static HashMap<TextChannel, Match> matches = new HashMap<>();
 	private static ArrayList<String> categories;
 
 	public static void setCategories(String[] cats)
 	{
 		categories = new ArrayList<>(Arrays.asList(cats));
 	}
-	public static void startSession(CommandEvent event)
+	public static void startMatch(CommandEvent event)
 	{
-		startSession(event, 0);
+		startMatch(event,0);
 	}
-	public static void startSession(CommandEvent event, int numOfBonuses)
+	public static void startMatch(CommandEvent event, int numOfBonuses)
 	{
 		/*
 		if (!categories.contains(event.getTextChannel().getName()))
@@ -30,124 +30,126 @@ public class QuizbowlHandler
 			return;
 		}
 		*/
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).startSession(event, numOfBonuses);
+			matches.get(event.getTextChannel()).initializeMatch(event, false, numOfBonuses, false);
+			matches.get(event.getTextChannel()).goToNextTU();
 		}
 		else
 		{
-			sessions.put(event.getTextChannel(), new Session(event, numOfBonuses));
+			matches.put(event.getTextChannel(), new Match(event, false, numOfBonuses, false));
+			matches.get(event.getTextChannel()).goToNextTU();
 		}
 	}
-	public static void stopSession(CommandEvent event)
+	public static void stopMatch(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).stopSession(event);
+			matches.get(event.getTextChannel()).stopMatch(event);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
-	public static Session getSession(CommandEvent event)
+	public static Match getMatch(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			return sessions.get(event.getTextChannel());
+			return matches.get(event.getTextChannel());
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 		return null;
 	}
 	public static void registerScore(CommandEvent event, int toAdd)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).registerScore(event, toAdd);
+			matches.get(event.getTextChannel()).registerScore(event, toAdd);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void registerBuzz(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).registerBuzz(event);
+			matches.get(event.getTextChannel()).registerBuzz(event);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void withdrawBuzz(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).withdrawBuzz(event);
+			matches.get(event.getTextChannel()).withdrawBuzz(event);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void clearBuzzQueue(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).clearBuzzQueue(event);
+			matches.get(event.getTextChannel()).clearBuzzQueue(event);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void undoScore(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).undoScore(event);
+			matches.get(event.getTextChannel()).undoScore(event);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void continueTU(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).continueTU(event);
+			matches.get(event.getTextChannel()).continueTU(event);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void changeReader(CommandEvent event, Member newReader)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).changeReader(event, newReader);
+			matches.get(event.getTextChannel()).changeReader(event, newReader);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void printScores(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).printScores();
+			matches.get(event.getTextChannel()).printScoreboard();
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 

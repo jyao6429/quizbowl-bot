@@ -31,12 +31,12 @@ public class ReadCommand extends Command
 			{
 				event.replySuccess("Starting session with " + numOfBonuses + " bonus");
 			}
-			QuizbowlHandler.startSession(event, numOfBonuses);
+			QuizbowlHandler.startMatch(event, numOfBonuses);
 		}
 		catch (NumberFormatException ex)
 		{
 			event.replySuccess("Starting session with 0 bonuses");
-			QuizbowlHandler.startSession(event);
+			QuizbowlHandler.startMatch(event);
 		}
 	}
 }

@@ -46,6 +46,8 @@ public class Player implements Comparable<Player>
 				bonuses += toAdd;
 				toAdd *= 10;
 				break;
+			case ZERO:
+				break;
 		}
 		score += toAdd;
 	}
