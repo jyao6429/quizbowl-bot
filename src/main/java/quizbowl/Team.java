@@ -93,4 +93,8 @@ public class Team implements Comparable<Team>
 	{
 		return isRole;
 	}
+	public void setMatch(Match match)
+	{
+		this.match = match;
+	}
 }

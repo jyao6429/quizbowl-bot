@@ -434,7 +434,12 @@ public class Match
 			teamList = teams;
 		}
 	}
-	public Points getPoints(int points, boolean isBonus)
+	public void setPlayers(HashMap<Member, Player> players1)
+	{
+		players = players1;
+		playerList = new ArrayList<>(players.values());
+	}
+	public static Points getPoints(int points, boolean isBonus)
 	{
 		switch (points)
 		{
@@ -506,6 +511,10 @@ public class Match
 	public TextChannel getChannel()
 	{
 		return channel;
+	}
+	public MatchState getState()
+	{
+		return state;
 	}
 }
 class Buzz

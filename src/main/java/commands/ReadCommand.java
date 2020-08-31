@@ -29,7 +29,7 @@ public class ReadCommand extends Command
 			}
 			else
 			{
-				event.replySuccess("Starting session with " + numOfBonuses + " bonus");
+				event.replySuccess("Starting session with " + numOfBonuses + " bonuses");
 			}
 			QuizbowlHandler.startMatch(event, numOfBonuses);
 		}

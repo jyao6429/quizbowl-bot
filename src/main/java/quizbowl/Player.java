@@ -120,6 +120,10 @@ public class Player implements Comparable<Player>
 	{
 		return team;
 	}
+	public void setTeam(Team team)
+	{
+		this.team = team;
+	}
 	public int compareTo(Player o)
 	{
 		return o.getScore() - this.getScore();

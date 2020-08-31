@@ -50,6 +50,7 @@ public class Bot
 
 		// Build the client
 		EventWaiter waiter = new EventWaiter();
+		QuizbowlHandler.setWaiter(waiter);
 
 		CommandClientBuilder client = new CommandClientBuilder();
 		client.useDefaultGame();
@@ -63,6 +64,7 @@ public class Bot
 						new String[]{"Read stuff","Buzz","Score stuff"},
 						RECOMMENDED_PERMS),
 				new ReadCommand(),
+				new MatchCommand(),
 				new BuzzCommand(),
 				new PowerCommand(),
 				new TenCommand(),
