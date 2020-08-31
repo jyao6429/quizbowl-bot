@@ -9,7 +9,7 @@ import java.util.List;
 
 public class ChangeReaderCommand extends Command
 {
-	public ChangeReaderCommand()
+	@SuppressWarnings("SpellCheckingInspection") public ChangeReaderCommand()
 	{
 		this.name = "change";
 		this.help = "change the reader";

@@ -2,21 +2,19 @@ package quizbowl;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import com.jagrosh.jdautilities.menu.Menu;
-import com.jagrosh.jdautilities.menu.OrderedMenu;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 
-import java.awt.image.AreaAveragingScaleFilter;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
-public class QuizbowlHandler
+@SuppressWarnings("FieldCanBeLocal") public class QuizbowlHandler
 {
-	private static HashMap<TextChannel, Match> matches = new HashMap<>();
-	private static ArrayList<String> categories;
+	private static final HashMap<TextChannel, Match> matches = new HashMap<>();
+	private static ArrayList<String> categories = new ArrayList<>();
 	private static EventWaiter waiter;
 
 	public static void setWaiter(EventWaiter w)
@@ -56,8 +54,9 @@ public class QuizbowlHandler
 				.useNumbers()
 				.useCancelButton(false)
 				.setEventWaiter(waiter)
-				.setTimeout(5, TimeUnit.MINUTES)
-				.setDescription("Please react to the number corresponding to your team");
+				.setTimeout(2, TimeUnit.MINUTES)
+				.setDescription("#" + event.getChannel().getName() + "\nPlease react to the number corresponding to your team")
+				.setColor(Color.WHITE);
 		for (Team temp : teamList)
 		{
 			builder = builder.addChoice(temp.getName());
@@ -76,16 +75,19 @@ public class QuizbowlHandler
 					Player currentPlayer = players.get(m);
 					currentPlayer.getTeam().removePlayer(currentPlayer);
 					players.remove(m);
+					assert m != null;
 					event.replySuccess("Removed " + m.getAsMention() + " from the match");
 				}
 				else
 				{
+					assert m != null;
 					event.replyWarning(m.getAsMention() + " You are not part of a team!");
 				}
 				return;
 			}
 			else if (i == teamList.size() + 2)
 			{
+				assert m != null;
 				if (!m.equals(event.getMember()))
 				{
 					event.replyWarning(m.getAsMention() + " You are not the moderator!");
@@ -98,21 +100,28 @@ public class QuizbowlHandler
 				return;
 			}
 			Team currentTeam = teamList.get(i - 1);
-			if (currentTeam.getIsRole() && !m.getRoles().contains(currentTeam.getRole()))
+			if (currentTeam.getIsRole())
 			{
-				event.replyWarning(m.getAsMention() + " You do not have the role for this team!");
-				return;
+				assert m != null;
+				if (!m.getRoles().contains(currentTeam.getRole()))
+				{
+					event.replyWarning(m.getAsMention() + " You do not have the role for this team!");
+					return;
+				}
 			}
 			if (players.containsKey(m))
 			{
 				Player currentPlayer = players.get(m);
 				if (currentPlayer.getTeam().equals(currentTeam))
 				{
+					assert m != null;
 					event.replyWarning(m.getAsMention() + " You are already on that team!");
 					return;
 				}
 				currentPlayer.getTeam().removePlayer(currentPlayer);
+				currentTeam.addPlayer(currentPlayer);
 				currentPlayer.setTeam(currentTeam);
+				assert m != null;
 				event.replySuccess("Switched " + m.getAsMention() + " to team " + currentTeam.getName());
 			}
 			else
@@ -120,6 +129,7 @@ public class QuizbowlHandler
 				Player currentPlayer = new Player(m, match, currentTeam);
 				currentTeam.addPlayer(currentPlayer);
 				players.put(m, currentPlayer);
+				assert m != null;
 				event.replySuccess("Added " + m.getAsMention() + " to team " + currentTeam.getName());
 			}
 		})

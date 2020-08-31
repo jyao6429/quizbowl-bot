@@ -2,13 +2,11 @@ package commands;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import quizbowl.QuizbowlHandler;
 import quizbowl.Team;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class MatchCommand extends Command
 {
@@ -27,10 +25,19 @@ public class MatchCommand extends Command
 			event.replyError("Please specify at least 2 teams");
 			return;
 		}
+		else if (teams.length > 8)
+		{
+			event.replyError("Please specify fewer than 8 teams");
+			return;
+		}
 		ArrayList<Team> teamList = new ArrayList<>();
 		for (String temp : teams)
 		{
-			Role tempR = event.getGuild().getRoleById(temp.replaceAll("[^\\d]", ""));
+			temp = temp.trim();
+			String numOnly = temp.replaceAll("[^\\d]", "");
+			Role tempR = null;
+			if (!numOnly.isEmpty())
+				tempR = event.getGuild().getRoleById(numOnly);
 			if (tempR == null)
 			{
 				teamList.add(new Team(temp, null));

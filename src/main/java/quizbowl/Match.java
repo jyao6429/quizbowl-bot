@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 
+import java.awt.*;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,13 +26,14 @@ public class Match
 	enum MatchState
 	{
 		STOPPED,
+		STARTING,
 		READING,
 		BUZZED,
 		BONUS,
 		BOUNCE
 	}
 	// Channel variables
-	private TextChannel channel;
+	private final TextChannel channel;
 	private Member reader;
 	private final String BEE = "\uD83D\uDC1D";
 
@@ -63,13 +65,13 @@ public class Match
 			event.replyWarning("There is currently an ongoing match!");
 			return;
 		}
+		state = MatchState.STARTING;
 		reader = event.getMember();
 		tossup = 0;
 		bonus = 0;
 		numOfBonuses = bonusNum;
 		isTeam = team;
 		isBounce = bounce;
-		state = MatchState.READING;
 		players = new HashMap<>();
 		playerList = new ArrayList<>();
 		teamList = new ArrayList<>();
@@ -260,7 +262,10 @@ public class Match
 				return;
 			}
 			toUndo = currentMatchEvents.pop();
-			bonus = numOfBonuses;
+			if (toUndo.isBonus)
+				bonus = numOfBonuses;
+			else
+				bonus = 0;
 		}
 		else
 		{
@@ -314,7 +319,8 @@ public class Match
 				if (index == 0)
 				{
 					toRemove.event.getMessage().clearReactions(BEE).queue();
-					buzzQueue.get(1).event.getMessage().addReaction(BEE).queue();
+					if (buzzQueue.size() > 1)
+						buzzQueue.get(1).event.getMessage().addReaction(BEE).queue();
 				}
 				buzzQueue.remove(index);
 				event.reactSuccess();
@@ -480,6 +486,7 @@ public class Match
 			}
 			embed = new EmbedBuilder()
 					.setTitle("Scoreboard")
+					.setColor(Color.WHITE)
 					.setDescription("#" + channel.getName() + "\nToss Ups: " + tossup)
 					.setTimestamp(OffsetDateTime.now())
 					.setThumbnail("https://raw.githubusercontent.com/jyao6429/quizbowl-bot/master/images/qbat%20icon%20square.png")
@@ -491,6 +498,7 @@ public class Match
 		{
 			embed = new EmbedBuilder()
 					.setTitle("Scoreboard")
+					.setColor(Color.WHITE)
 					.setDescription("#" + channel.getName() + "\nToss Ups: " + tossup)
 					.setTimestamp(OffsetDateTime.now())
 					.setThumbnail("https://raw.githubusercontent.com/jyao6429/quizbowl-bot/master/images/qbat%20icon%20square.png")
@@ -519,10 +527,10 @@ public class Match
 }
 class Buzz
 {
-	public CommandEvent event;
-	public Player player;
-	public int tossup;
-	public boolean isFirst;
+	public final CommandEvent event;
+	public final Player player;
+	public final int tossup;
+	public final boolean isFirst;
 
 	public Buzz(CommandEvent e, Player p, int tu, boolean f)
 	{
@@ -542,17 +550,19 @@ class Buzz
 
 		if (tossup != buzz.tossup)
 			return false;
-		return player.equals(buzz.player) || player.getTeam().equals(buzz.player.getTeam());
+		if (player.getTeam() != null && buzz.player.getTeam() != null)
+			return player.getTeam().equals(buzz.player.getTeam());
+		return player.equals(buzz.player);
 	}
 }
 class MatchEvent
 {
-	public CommandEvent event;
-	public Buzz buzz;
-	public Player player;
-	public boolean isBonus;
-	public Match.Points scoreChange;
-	public int tossup;
+	public final CommandEvent event;
+	public final Buzz buzz;
+	public final Player player;
+	public final boolean isBonus;
+	public final Match.Points scoreChange;
+	public final int tossup;
 
 	public MatchEvent(CommandEvent e, int tu, Player p, Match.Points s, boolean b)
 	{

@@ -2,13 +2,11 @@ package quizbowl;
 
 import net.dv8tion.jda.api.entities.Member;
 
-import java.util.Objects;
-
 public class Player implements Comparable<Player>
 {
-	private Member member;
+	private final Member member;
 	private int score, tens, powers, negs, bonuses;
-	private Match match;
+	private final Match match;
 	private Team team;
 
 	public Player(Member m, Match s, Team t)
@@ -47,6 +45,7 @@ public class Player implements Comparable<Player>
 				toAdd *= 10;
 				break;
 			case ZERO:
+				toAdd = 0;
 				break;
 		}
 		score += toAdd;

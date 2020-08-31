@@ -10,6 +10,7 @@ public class BuzzCommand extends Command
 	{
 		this.name = "buzz";
 		this.help = "adds you to the buzz queue";
+		//noinspection SpellCheckingInspection
 		this.aliases = new String[]{"b", "bz", "buzzz"};
 		this.guildOnly = true;
 	}

@@ -6,11 +6,11 @@ import java.util.ArrayList;
 
 public class Team implements Comparable<Team>
 {
-	private String name;
-	private Role role;
-	private boolean isRole;
+	private final String name;
+	private final Role role;
+	private final boolean isRole;
 	private Match match;
-	private ArrayList<Player> players;
+	private final ArrayList<Player> players;
 
 	public Team(String n, Match m)
 	{
@@ -28,7 +28,7 @@ public class Team implements Comparable<Team>
 		match = m;
 		players = new ArrayList<>();
 	}
-	public int addPlayer(Player p)
+	@SuppressWarnings("UnusedReturnValue") public int addPlayer(Player p)
 	{
 		if (!players.contains(p))
 		{
@@ -66,8 +66,7 @@ public class Team implements Comparable<Team>
 			negs += temp.getNegs();
 			bonuses += temp.getBonuses();
 		}
-		String toReturn = String.format("%s - **%d** pts (15: **%d** | 10: **%d** | -5: **%d** | B: **%d**)", name, score, powers, tens, negs, bonuses);
-		return toReturn;
+		return String.format("%s - **%d** pts (15: **%d** | 10: **%d** | -5: **%d** | B: **%d**)", name, score, powers, tens, negs, bonuses);
 	}
 	public int getNumOfPlayers()
 	{
