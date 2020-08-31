@@ -30,14 +30,14 @@ public class MatchCommand extends Command
 		ArrayList<Team> teamList = new ArrayList<>();
 		for (String temp : teams)
 		{
-			List<Role> tempR = event.getGuild().getRolesByName(temp, true);
-			if (tempR.size() == 0)
+			Role tempR = event.getGuild().getRoleById(temp.replaceAll("[^\\d]", ""));
+			if (tempR == null)
 			{
 				teamList.add(new Team(temp, null));
 			}
 			else
 			{
-				teamList.add(new Team(tempR.get(0), null));
+				teamList.add(new Team(tempR, null));
 			}
 		}
 		QuizbowlHandler.startTeamMatch(event, teamList);

@@ -62,52 +62,70 @@ public class QuizbowlHandler
 		{
 			builder = builder.addChoice(temp.getName());
 		}
-		builder.addChoice("Remove from teams");
-		builder.addChoice("Start Match");
+		builder.addChoice("Remove from match");
+		builder.addChoice("Start match");
 		HashMap<Member, Player> players = new HashMap<>();
 		builder.setSelection((msg,msgReactionAddEvent) ->
+		{
+			int i = TeamSelectionMenu.getNumber(msgReactionAddEvent.getReactionEmote().getName());
+			Member m = msgReactionAddEvent.getMember();
+			if (i == teamList.size() + 1)
+			{
+				if (players.containsKey(m))
 				{
-					int i = TeamSelectionMenu.getNumber(msgReactionAddEvent.getReactionEmote().getName());
-					Member m = msgReactionAddEvent.getMember();
-					//msg.removeReaction(msgReactionAddEvent.getReactionEmote().getEmote(), m.getUser());
-					if (i == teamList.size() + 1)
-					{
-						if (players.containsKey(m))
-						{
-							Player currentPlayer = players.get(m);
-							currentPlayer.getTeam().removePlayer(currentPlayer);
-							players.remove(m);
-							match.getChannel().sendMessage("Removed " + currentPlayer.getMember().getAsMention() + " from the match").queue();
-						}
-						return;
-					}
-					else if (i == teamList.size() + 2)
-					{
-						match.setTeamList(teamList);
-						match.setPlayers(players);
-						match.goToNextTU();
-						return;
-					}
-					Team currentTeam = teamList.get(i - 1);
-					if (players.containsKey(m))
-					{
-						Player currentPlayer = players.get(m);
-						currentPlayer.getTeam().removePlayer(currentPlayer);
-						currentPlayer.setTeam(currentTeam);
-						match.getChannel().sendMessage("Switched " + currentPlayer.getMember().getAsMention() + " to team " + currentTeam.getName()).queue();
-					}
-					else
-					{
-						Player currentPlayer = new Player(m, match, currentTeam);
-						currentTeam.addPlayer(currentPlayer);
-						players.put(m, currentPlayer);
-						match.getChannel().sendMessage("Added " + currentPlayer.getMember().getAsMention() + " to team " + currentTeam.getName()).queue();
-					}
-				})
-				.setCancel((msg) -> {})
-				;
+					Player currentPlayer = players.get(m);
+					currentPlayer.getTeam().removePlayer(currentPlayer);
+					players.remove(m);
+					event.replySuccess("Removed " + m.getAsMention() + " from the match");
+				}
+				else
+				{
+					event.replyWarning(m.getAsMention() + " You are not part of a team!");
+				}
+				return;
+			}
+			else if (i == teamList.size() + 2)
+			{
+				if (!m.equals(event.getMember()))
+				{
+					event.replyWarning(m.getAsMention() + " You are not the moderator!");
+					return;
+				}
+				event.replySuccess("Starting match");
+				match.setTeamList(teamList);
+				match.setPlayers(players);
+				match.goToNextTU();
+				return;
+			}
+			Team currentTeam = teamList.get(i - 1);
+			if (currentTeam.getIsRole() && !m.getRoles().contains(currentTeam.getRole()))
+			{
+				event.replyWarning(m.getAsMention() + " You do not have the role for this team!");
+				return;
+			}
+			if (players.containsKey(m))
+			{
+				Player currentPlayer = players.get(m);
+				if (currentPlayer.getTeam().equals(currentTeam))
+				{
+					event.replyWarning(m.getAsMention() + " You are already on that team!");
+					return;
+				}
+				currentPlayer.getTeam().removePlayer(currentPlayer);
+				currentPlayer.setTeam(currentTeam);
+				event.replySuccess("Switched " + m.getAsMention() + " to team " + currentTeam.getName());
+			}
+			else
+			{
+				Player currentPlayer = new Player(m, match, currentTeam);
+				currentTeam.addPlayer(currentPlayer);
+				players.put(m, currentPlayer);
+				event.replySuccess("Added " + m.getAsMention() + " to team " + currentTeam.getName());
+			}
+		})
+		.setCancel((msg) -> {})
+		;
 		builder.build().display(match.getChannel());
-
 	}
 	public static void startMatch(CommandEvent event)
 	{
