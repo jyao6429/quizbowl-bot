@@ -93,6 +93,10 @@ import java.util.concurrent.TimeUnit;
 					event.replyWarning(m.getAsMention() + " You are not the moderator!");
 					return;
 				}
+				if (match.getState() == Match.MatchState.STOPPED)
+				{
+					match.initializeMatch(event, true, 3, false);
+				}
 				event.replySuccess("Starting match");
 				match.setTeamList(teamList);
 				match.setPlayers(players);
@@ -133,7 +137,7 @@ import java.util.concurrent.TimeUnit;
 				event.replySuccess("Added " + m.getAsMention() + " to team " + currentTeam.getName());
 			}
 		})
-		.setCancel((msg) -> {})
+		.setCancel((msg) -> {match.stopMatch(event);})
 		;
 		builder.build().display(match.getChannel());
 	}

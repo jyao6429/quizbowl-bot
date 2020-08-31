@@ -88,7 +88,7 @@ public class Match
 			event.replyWarning("You are not the reader");
 			return;
 		}
-		if (state != MatchState.READING)
+		if (state != MatchState.READING && state != MatchState.STARTING)
 		{
 			event.replyWarning("Can't stop, someone has buzzed!");
 			return;
