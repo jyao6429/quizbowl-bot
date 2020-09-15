@@ -36,11 +36,10 @@ import java.util.concurrent.TimeUnit;
 				event.replyWarning("There is currently an ongoing match!");
 				return;
 			}
-			match.initializeMatch(event, true, 3, false);
 		}
 		else
 		{
-			match = new Match(event, true, 3, false);
+			match = new Match(event, true, 3, false, false);
 			matches.put(event.getTextChannel(), match);
 		}
 		for (Team temp : teamList)
@@ -54,7 +53,7 @@ import java.util.concurrent.TimeUnit;
 				.useNumbers()
 				.useCancelButton(false)
 				.setEventWaiter(waiter)
-				.setTimeout(2, TimeUnit.MINUTES)
+				.setTimeout(15, TimeUnit.MINUTES)
 				.setDescription("#" + event.getChannel().getName() + "\nPlease react to the number corresponding to your team")
 				.setColor(Color.WHITE);
 		for (Team temp : teamList)
@@ -93,10 +92,7 @@ import java.util.concurrent.TimeUnit;
 					event.replyWarning(m.getAsMention() + " You are not the moderator!");
 					return;
 				}
-				if (match.getState() == Match.MatchState.STOPPED)
-				{
-					match.initializeMatch(event, true, 3, false);
-				}
+				match.initializeMatch(event, true, 3, false);
 				event.replySuccess("Starting match");
 				match.setTeamList(teamList);
 				match.setPlayers(players);
@@ -137,7 +133,7 @@ import java.util.concurrent.TimeUnit;
 				event.replySuccess("Added " + m.getAsMention() + " to team " + currentTeam.getName());
 			}
 		})
-		.setCancel((msg) -> {match.stopMatch(event);})
+		.setCancel((msg) -> {})
 		;
 		builder.build().display(match.getChannel());
 	}

@@ -26,7 +26,6 @@ public class Match
 	enum MatchState
 	{
 		STOPPED,
-		STARTING,
 		READING,
 		BUZZED,
 		BONUS,
@@ -51,12 +50,17 @@ public class Match
 	private Stack<MatchEvent> currentMatchEvents;
 	private Stack<MatchEvent> previousMatchEvents;
 
-	// Constructor
+	// Constructors
 	public Match(CommandEvent event, boolean team, int bonusNum, boolean bounce)
+	{
+		this(event, team, bonusNum, bounce, true);
+	}
+	public Match(CommandEvent event, boolean team, int bonusNum, boolean bounce, boolean initialize)
 	{
 		channel = event.getTextChannel();
 		state = MatchState.STOPPED;
-		initializeMatch(event, team, bonusNum, bounce);
+		if (initialize)
+			initializeMatch(event, team, bonusNum, bounce);
 	}
 	public void initializeMatch(CommandEvent event, boolean team, int bonusNum, boolean bounce)
 	{
@@ -65,7 +69,7 @@ public class Match
 			event.replyWarning("There is currently an ongoing match!");
 			return;
 		}
-		state = MatchState.STARTING;
+		state = MatchState.READING;
 		reader = event.getMember();
 		tossup = 0;
 		bonus = 0;
@@ -88,7 +92,7 @@ public class Match
 			event.replyWarning("You are not the reader");
 			return;
 		}
-		if (state != MatchState.READING && state != MatchState.STARTING)
+		if (state != MatchState.READING)
 		{
 			event.replyWarning("Can't stop, someone has buzzed!");
 			return;
@@ -192,6 +196,7 @@ public class Match
 			currentEvent = new MatchEvent(event, tossup, currentBuzz.player, getPoints(toAdd, false), false, currentBuzz);
 			currentBuzz.player.add(currentEvent.scoreChange);
 			currentMatchEvents.push(currentEvent);
+			lockedOut.push(currentBuzz);
 			event.reactSuccess();
 
 			// Handle end
@@ -199,12 +204,14 @@ public class Match
 			{
 				state = MatchState.READING;
 			}
-			else
+			else if (toAdd <= 0)
 			{
 				buzzQueue.get(0).event.getMessage().addReaction(BEE).queue();
 			}
 			if (toAdd > 0)
 			{
+				if (isTeam)
+					event.reply("Bonuses for team " + currentBuzz.player.getTeam().getName());
 				goToNextBonus();
 			}
 		}
