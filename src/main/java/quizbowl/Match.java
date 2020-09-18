@@ -154,6 +154,12 @@ public class Match
 			event.replyError(event.getMember().getAsMention() + " You are not part of a team!");
 			return;
 		}
+		// Special case for only 2 teams, comply with PACE online competition rules
+		if (isTeam && teamList.size() == 2  && !buzzQueue.isEmpty())
+		{
+			event.replyWarning(event.getMember().getAsMention() + " Someone has buzzed!");
+			return;
+		}
 		if (lockedOut.contains(newBuzz) || buzzQueue.contains(newBuzz))
 		{
 			String message = (isTeam) ? " Your team has already buzzed!" : " You have already buzzed!";
