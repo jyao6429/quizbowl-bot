@@ -7,6 +7,8 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.awt.*;
+import java.io.*;
+import java.nio.file.Files;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -97,7 +99,11 @@ public class Match
 			event.replyWarning("Can't stop, someone has buzzed!");
 			return;
 		}
+		if (currentMatchEvents.isEmpty())
+			tossup--;
 		printScoreboard();
+		if (isTeam && teamList.size() == 2)
+			sendCSV(event);
 		reader = null;
 		players = null;
 		playerList = null;
@@ -519,6 +525,34 @@ public class Match
 					.build();
 		}
 		channel.sendMessage(embed).queue();
+	}
+	public void sendCSV(CommandEvent event)
+	{
+		try
+		{
+			File tempScore = new File(event.getMessage().getIdLong() + "");
+			PrintWriter pw = new PrintWriter(tempScore);
+			pw.printf("%s,%s,,Moderator:,%s,,Tossups:,%d\n", channel.getParent().getName().toUpperCase(), channel.getName(), reader.getEffectiveName(), tossup);
+			pw.printf("%s vs. %s\n\n", teamList.get(0).getEffectiveName(), teamList.get(1).getEffectiveName());
+			pw.println("Team/Player,Score,Powers,Tens,Negs,Bonuses");
+			for (Team t : teamList)
+			{
+				pw.println(t.getCSV());
+				Collections.sort(t.getPlayers());
+				for (Player p : t.getPlayers())
+					pw.println(p.getCSV());
+				pw.println();
+			}
+			pw.close();
+
+			String fileName = String.format("%s-%s %s--%s vs %s.csv", channel.getParent().getName().toUpperCase(), channel.getName(), reader.getEffectiveName(), teamList.get(0).getEffectiveName(), teamList.get(1).getEffectiveName());
+			channel.sendFile(tempScore, fileName).queue((message) -> tempScore.delete());
+		}
+		catch (IOException ex)
+		{
+			event.replyError("Unable to send CSV file!");
+			ex.printStackTrace();
+		}
 	}
 
 	public boolean isTeam()

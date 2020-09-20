@@ -137,6 +137,10 @@ public class Player implements Comparable<Player>
 		toReturn += ")";
 		return toReturn;
 	}
+	public String getCSV()
+	{
+		return String.format("%s,%d,%d,%d,%d,%d", member.getEffectiveName(), score, powers, tens, negs, bonuses);
+	}
 	@Override public boolean equals(Object o)
 	{
 		if (this == o)

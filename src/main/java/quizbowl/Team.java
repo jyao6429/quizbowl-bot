@@ -68,6 +68,20 @@ public class Team implements Comparable<Team>
 		}
 		return String.format("%s - **%d** pts (15: **%d** | 10: **%d** | -5: **%d** | B: **%d**)", name, score, powers, tens, negs, bonuses);
 	}
+	public String getCSV()
+	{
+		int score, tens, powers, negs, bonuses;
+		score = tens = powers = negs = bonuses = 0;
+		for (Player temp : players)
+		{
+			score += temp.getScore();
+			tens += temp.getTens();
+			powers += temp.getPowers();
+			negs += temp.getNegs();
+			bonuses += temp.getBonuses();
+		}
+		return String.format("%s,%d,%d,%d,%d,%d", getEffectiveName(), score, powers, tens, negs, bonuses);
+	}
 	public int getNumOfPlayers()
 	{
 		return players.size();
@@ -83,6 +97,10 @@ public class Team implements Comparable<Team>
 	public String getName()
 	{
 		return name;
+	}
+	public String getEffectiveName()
+	{
+		return isRole ? role.getName() : name;
 	}
 	public Role getRole()
 	{
