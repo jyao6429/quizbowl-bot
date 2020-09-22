@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 @SuppressWarnings("FieldCanBeLocal") public class QuizbowlHandler
 {
 	private static final HashMap<TextChannel, Match> matches = new HashMap<>();
-	private static ArrayList<String> categories = new ArrayList<>();
+	@SuppressWarnings("MismatchedQueryAndUpdateOfCollection") private static ArrayList<String> categories = new ArrayList<>();
 	private static EventWaiter waiter;
 
 	public static void setWaiter(EventWaiter w)
