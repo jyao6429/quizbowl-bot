@@ -25,11 +25,4 @@ dependencies
     compile 'org.slf4j:slf4j-jdk14:1.7.30'
 }
 
-jar
-{
-    manifest
-    {
-        attributes 'Main-Class': 'bot.Bot'
-    }
-}
 compileJava.options.encoding = 'UTF-8'
