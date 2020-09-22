@@ -1,27 +1,148 @@
 package quizbowl;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
-public class QuizbowlHandler
+@SuppressWarnings("FieldCanBeLocal") public class QuizbowlHandler
 {
-	private static HashMap<TextChannel, Session> sessions = new HashMap<>();
-	private static ArrayList<String> categories;
+	private static final HashMap<TextChannel, Match> matches = new HashMap<>();
+	@SuppressWarnings("MismatchedQueryAndUpdateOfCollection") private static ArrayList<String> categories = new ArrayList<>();
+	private static EventWaiter waiter;
 
+	public static void setWaiter(EventWaiter w)
+	{
+		waiter = w;
+	}
 	public static void setCategories(String[] cats)
 	{
 		categories = new ArrayList<>(Arrays.asList(cats));
 	}
-	public static void startSession(CommandEvent event)
+	public static void startTeamMatch(CommandEvent event, ArrayList<Team> teamList)
 	{
-		startSession(event, 0);
+		Match match;
+		if (matches.containsKey(event.getTextChannel()))
+		{
+			match = matches.get(event.getTextChannel());
+			if (match.getState() != Match.MatchState.STOPPED)
+			{
+				event.replyWarning("There is currently an ongoing match!");
+				return;
+			}
+			match.setState(Match.MatchState.SELECTING);
+		}
+		else
+		{
+			match = new Match(event, true, 3, false, false);
+			matches.put(event.getTextChannel(), match);
+		}
+		for (Team temp : teamList)
+		{
+			temp.setMatch(match);
+		}
+		match.setTeamList(teamList);
+
+		TeamSelectionMenu.Builder builder = new TeamSelectionMenu.Builder()
+				.allowTextInput(false)
+				.useNumbers()
+				.useCancelButton(false)
+				.setEventWaiter(waiter)
+				.setTimeout(1, TimeUnit.MINUTES)
+				.setDescription("#" + event.getChannel().getName() + "\nPlease react to the number corresponding to your team")
+				.setColor(Color.WHITE);
+		for (Team temp : teamList)
+		{
+			builder = builder.addChoice(temp.getName());
+		}
+		builder.addChoice("Remove from match");
+		builder.addChoice("Start match");
+		HashMap<Member, Player> players = new HashMap<>();
+		builder.setSelection((msg,msgReactionAddEvent) ->
+		{
+			int i = TeamSelectionMenu.getNumber(msgReactionAddEvent.getReactionEmote().getName());
+			Member m = msgReactionAddEvent.getMember();
+			if (i == teamList.size() + 1)
+			{
+				if (players.containsKey(m))
+				{
+					Player currentPlayer = players.get(m);
+					currentPlayer.getTeam().removePlayer(currentPlayer);
+					players.remove(m);
+					assert m != null;
+					event.replySuccess("Removed " + m.getAsMention() + " from the match");
+				}
+				else
+				{
+					assert m != null;
+					event.replyWarning(m.getAsMention() + " You are not part of a team!");
+				}
+				return;
+			}
+			else if (i == teamList.size() + 2)
+			{
+				assert m != null;
+				if (!m.equals(event.getMember()))
+				{
+					event.replyWarning(m.getAsMention() + " You are not the moderator!");
+					return;
+				}
+				match.initializeMatch(event, true, 3, false);
+				event.replySuccess("Starting match");
+				match.setTeamList(teamList);
+				match.setPlayers(players);
+				match.goToNextTU();
+				return;
+			}
+			Team currentTeam = teamList.get(i - 1);
+			if (currentTeam.getIsRole())
+			{
+				assert m != null;
+				if (!m.getRoles().contains(currentTeam.getRole()))
+				{
+					event.replyWarning(m.getAsMention() + " You do not have the role for this team!");
+					return;
+				}
+			}
+			if (players.containsKey(m))
+			{
+				Player currentPlayer = players.get(m);
+				if (currentPlayer.getTeam().equals(currentTeam))
+				{
+					assert m != null;
+					event.replyWarning(m.getAsMention() + " You are already on that team!");
+					return;
+				}
+				currentPlayer.getTeam().removePlayer(currentPlayer);
+				currentTeam.addPlayer(currentPlayer);
+				currentPlayer.setTeam(currentTeam);
+				assert m != null;
+				event.replySuccess("Switched " + m.getAsMention() + " to team " + currentTeam.getName());
+			}
+			else
+			{
+				Player currentPlayer = new Player(m, match, currentTeam);
+				currentTeam.addPlayer(currentPlayer);
+				players.put(m, currentPlayer);
+				assert m != null;
+				event.replySuccess("Added " + m.getAsMention() + " to team " + currentTeam.getName());
+			}
+		})
+		.setCancel(msg -> match.setState(Match.MatchState.STOPPED))
+		;
+		builder.build().display(match.getChannel());
 	}
-	public static void startSession(CommandEvent event, int numOfBonuses)
+	public static void startMatch(CommandEvent event)
+	{
+		startMatch(event,0);
+	}
+	public static void startMatch(CommandEvent event, int numOfBonuses)
 	{
 		/*
 		if (!categories.contains(event.getTextChannel().getName()))
@@ -30,124 +151,147 @@ public class QuizbowlHandler
 			return;
 		}
 		*/
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).startSession(event, numOfBonuses);
+			if (matches.get(event.getTextChannel()).getState() != Match.MatchState.STOPPED)
+			{
+				event.replyWarning("There is currently an ongoing match!");
+				return;
+			}
+			if (numOfBonuses == 1)
+			{
+				event.replySuccess("Starting session with 1 bonus");
+			}
+			else
+			{
+				event.replySuccess("Starting session with " + numOfBonuses + " bonuses");
+			}
+			matches.get(event.getTextChannel()).initializeMatch(event, false, numOfBonuses, false);
+			matches.get(event.getTextChannel()).goToNextTU();
 		}
 		else
 		{
-			sessions.put(event.getTextChannel(), new Session(event, numOfBonuses));
+			if (numOfBonuses == 1)
+			{
+				event.replySuccess("Starting session with 1 bonus");
+			}
+			else
+			{
+				event.replySuccess("Starting session with " + numOfBonuses + " bonuses");
+			}
+			matches.put(event.getTextChannel(), new Match(event, false, numOfBonuses, false));
+			matches.get(event.getTextChannel()).goToNextTU();
 		}
 	}
-	public static void stopSession(CommandEvent event)
+	public static void stopMatch(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).stopSession(event);
+			matches.get(event.getTextChannel()).stopMatch(event);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
-	public static Session getSession(CommandEvent event)
+	public static Match getMatch(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			return sessions.get(event.getTextChannel());
+			return matches.get(event.getTextChannel());
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 		return null;
 	}
 	public static void registerScore(CommandEvent event, int toAdd)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).registerScore(event, toAdd);
+			matches.get(event.getTextChannel()).registerScore(event, toAdd);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void registerBuzz(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).registerBuzz(event);
+			matches.get(event.getTextChannel()).registerBuzz(event);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void withdrawBuzz(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).withdrawBuzz(event);
+			matches.get(event.getTextChannel()).withdrawBuzz(event);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void clearBuzzQueue(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).clearBuzzQueue(event);
+			matches.get(event.getTextChannel()).clearBuzzQueue(event);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void undoScore(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).undoScore(event);
+			matches.get(event.getTextChannel()).undoScore(event);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void continueTU(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).continueTU(event);
+			matches.get(event.getTextChannel()).continueTU(event);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void changeReader(CommandEvent event, Member newReader)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).changeReader(event, newReader);
+			matches.get(event.getTextChannel()).changeReader(event, newReader);
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 	public static void printScores(CommandEvent event)
 	{
-		if (sessions.containsKey(event.getTextChannel()))
+		if (matches.containsKey(event.getTextChannel()))
 		{
-			sessions.get(event.getTextChannel()).printScores();
+			matches.get(event.getTextChannel()).printScoreboard();
 		}
 		else
 		{
-			event.replyError("There is no active session in this text channel");
+			event.replyError("There is no active match in this text channel");
 		}
 	}
 

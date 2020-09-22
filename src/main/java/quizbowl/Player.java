@@ -1,78 +1,117 @@
 package quizbowl;
 
 import net.dv8tion.jda.api.entities.Member;
-import org.jetbrains.annotations.NotNull;
 
 public class Player implements Comparable<Player>
 {
-	private Member member;
+	private final Member member;
 	private int score, tens, powers, negs, bonuses;
-	private Scoreboard scoreboard;
+	private final Match match;
+	private Team team;
 
-	public Player(Member m, Scoreboard s)
+	public Player(Member m, Match s, Team t)
 	{
+		team = t;
 		member = m;
-		scoreboard = s;
+		match = s;
 	}
-	public void add(int toAdd)
+	public Player(Member m, Match s)
 	{
-		add(toAdd, false);
+		this(m, s, null);
 	}
-	public void add(int toAdd, boolean isBonus)
+	public void add(Match.Points points)
 	{
-		switch (toAdd)
+		add(points, false);
+	}
+	public void add(Match.Points points, boolean subtract)
+	{
+		int toAdd = subtract ? -1 : 1;
+		switch (points)
 		{
-			case 15:
-				powers++;
+			case TEN:
+				tens += toAdd;
+				toAdd *= 10;
 				break;
-			case -15:
-				powers--;
+			case POWER:
+				powers += toAdd;
+				toAdd *= 15;
 				break;
-			case 10:
-				if (isBonus)
-					bonuses++;
-				else
-					tens++;
+			case NEG:
+				negs += toAdd;
+				toAdd *= -5;
 				break;
-			case -10:
-				if (isBonus)
-					bonuses--;
-				else
-					tens--;
+			case BONUS:
+				bonuses += toAdd;
+				toAdd *= 10;
 				break;
-			case -5:
-				negs++;
-				break;
-			case 5:
-				negs--;
+			case ZERO:
+				toAdd = 0;
 				break;
 		}
 		score += toAdd;
 	}
+
 	public int getScore()
 	{
 		return score;
+	}
+	public int getTens()
+	{
+		return tens;
+	}
+	public int getPowers()
+	{
+		return powers;
+	}
+	public int getNegs()
+	{
+		return negs;
+	}
+	public int getBonuses()
+	{
+		return bonuses;
 	}
 	public Member getMember()
 	{
 		return member;
 	}
-	public Scoreboard getScoreboard()
+	public Match getMatch()
 	{
-		return scoreboard;
+		return match;
 	}
-	public int compareTo(@NotNull Player o)
+	public Team getTeam()
+	{
+		return team;
+	}
+	public void setTeam(Team team)
+	{
+		this.team = team;
+	}
+	public int compareTo(Player o)
 	{
 		return o.getScore() - this.getScore();
 	}
 	public String toString()
 	{
-		String toReturn = String.format("%s - **%d** pts (15: **%d** | 10: **%d** | -5: **%d**", member.getAsMention(), score, powers, tens, negs);
-		if (scoreboard.getSession().getNumOfBonuses() > 0)
+		String toReturn = String.format("%s - **%d** pts (15: **%d** | 10: **%d** | -5: **%d**", member.getAsMention(), match.isTeam() ? score - 10 * bonuses : score, powers, tens, negs);
+		if (match.getNumOfBonuses() > 0 && !match.isTeam())
 		{
 			toReturn += " | B: **" + bonuses + "**";
 		}
 		toReturn += ")";
 		return toReturn;
+	}
+	public String getCSV()
+	{
+		return String.format("%s,%d,%d,%d,%d", member.getEffectiveName(), powers, tens, negs, score - 10 * bonuses);
+	}
+	@Override public boolean equals(Object o)
+	{
+		if (this == o)
+			return true;
+		if (!(o instanceof Player))
+			return false;
+		Player player = (Player) o;
+		return member.equals(player.member);
 	}
 }

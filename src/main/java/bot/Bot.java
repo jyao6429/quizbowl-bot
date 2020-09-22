@@ -21,7 +21,7 @@ import java.util.List;
 public class Bot
 {
 	public final static Permission[] RECOMMENDED_PERMS = new Permission[]{Permission.MESSAGE_READ, Permission.MESSAGE_WRITE, Permission.MESSAGE_HISTORY, Permission.MESSAGE_ADD_REACTION,
-			Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ATTACH_FILES};
+			Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_MANAGE};
 	public final static String SUCCESS_EMOJI = "\u2705";
 	public final static String WARNING_EMOJI = "\u26A0";
 	public final static String ERROR_EMOJI = "\u274C";
@@ -50,6 +50,7 @@ public class Bot
 
 		// Build the client
 		EventWaiter waiter = new EventWaiter();
+		QuizbowlHandler.setWaiter(waiter);
 
 		CommandClientBuilder client = new CommandClientBuilder();
 		client.useDefaultGame();
@@ -63,6 +64,7 @@ public class Bot
 						new String[]{"Read stuff","Buzz","Score stuff"},
 						RECOMMENDED_PERMS),
 				new ReadCommand(),
+				new MatchCommand(),
 				new BuzzCommand(),
 				new PowerCommand(),
 				new TenCommand(),
