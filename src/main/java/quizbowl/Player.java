@@ -129,8 +129,8 @@ public class Player implements Comparable<Player>
 	}
 	public String toString()
 	{
-		String toReturn = String.format("%s - **%d** pts (15: **%d** | 10: **%d** | -5: **%d**", member.getAsMention(), score, powers, tens, negs);
-		if (match.getNumOfBonuses() > 0)
+		String toReturn = String.format("%s - **%d** pts (15: **%d** | 10: **%d** | -5: **%d**", member.getAsMention(), match.isTeam() ? score - 10 * bonuses : score, powers, tens, negs);
+		if (match.getNumOfBonuses() > 0 && !match.isTeam())
 		{
 			toReturn += " | B: **" + bonuses + "**";
 		}
@@ -139,7 +139,7 @@ public class Player implements Comparable<Player>
 	}
 	public String getCSV()
 	{
-		return String.format("%s,%d,%d,%d,%d,%d", member.getEffectiveName(), score, powers, tens, negs, bonuses);
+		return String.format("%s,%d,%d,%d,%d", member.getEffectiveName(), powers, tens, negs, score - 10 * bonuses);
 	}
 	@Override public boolean equals(Object o)
 	{

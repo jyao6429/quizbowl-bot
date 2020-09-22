@@ -532,9 +532,8 @@ public class Match
 		{
 			File tempScore = new File(event.getMessage().getIdLong() + "");
 			PrintWriter pw = new PrintWriter(tempScore);
-			pw.printf("%s,%s,,Moderator:,%s,,Tossups:,%d\n", channel.getParent().getName().toUpperCase(), channel.getName(), reader.getEffectiveName(), tossup);
-			pw.printf("%s vs. %s\n\n", teamList.get(0).getEffectiveName(), teamList.get(1).getEffectiveName());
-			pw.println("Team/Player,Score,Powers,Tens,Negs,Bonuses");
+			pw.printf("%s vs. %s,,Tossups:,%d\n\n", teamList.get(0).getEffectiveName(), teamList.get(1).getEffectiveName(), tossup);
+			pw.println("Team/Player,Powers,Tens,Negs,Score,Bonuses");
 			for (Team t : teamList)
 			{
 				pw.println(t.getCSV());

@@ -80,7 +80,7 @@ public class Team implements Comparable<Team>
 			negs += temp.getNegs();
 			bonuses += temp.getBonuses();
 		}
-		return String.format("%s,%d,%d,%d,%d,%d", getEffectiveName(), score, powers, tens, negs, bonuses);
+		return String.format("%s,%d,%d,%d,%d,%d", getEffectiveName(), powers, tens, negs, score, bonuses);
 	}
 	public int getNumOfPlayers()
 	{
