@@ -50,43 +50,7 @@ public class Player implements Comparable<Player>
 		}
 		score += toAdd;
 	}
-	/*
-	public void add(int toAdd)
-	{
-		add(toAdd, false);
-	}
-	public void add(int toAdd, boolean isBonus)
-	{
-		switch (toAdd)
-		{
-			case 15:
-				powers++;
-				break;
-			case -15:
-				powers--;
-				break;
-			case 10:
-				if (isBonus)
-					bonuses++;
-				else
-					tens++;
-				break;
-			case -10:
-				if (isBonus)
-					bonuses--;
-				else
-					tens--;
-				break;
-			case -5:
-				negs++;
-				break;
-			case 5:
-				negs--;
-				break;
-		}
-		score += toAdd;
-	}
-	 */
+
 	public int getScore()
 	{
 		return score;
