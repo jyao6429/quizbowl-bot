@@ -2,6 +2,7 @@ package quizbowl;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -10,10 +11,7 @@ import java.awt.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Stack;
+import java.util.*;
 
 public class Match
 {
@@ -28,6 +26,7 @@ public class Match
 	enum MatchState
 	{
 		STOPPED,
+		SELECTING,
 		READING,
 		BUZZED,
 		BONUS,
@@ -60,13 +59,13 @@ public class Match
 	public Match(CommandEvent event, boolean team, int bonusNum, boolean bounce, boolean initialize)
 	{
 		channel = event.getTextChannel();
-		state = MatchState.STOPPED;
+		state = MatchState.SELECTING;
 		if (initialize)
 			initializeMatch(event, team, bonusNum, bounce);
 	}
 	public void initializeMatch(CommandEvent event, boolean team, int bonusNum, boolean bounce)
 	{
-		if (state != MatchState.STOPPED)
+		if (state != MatchState.STOPPED && state != MatchState.SELECTING)
 		{
 			event.replyWarning("There is currently an ongoing match!");
 			return;
@@ -84,14 +83,14 @@ public class Match
 	}
 	public void stopMatch(CommandEvent event)
 	{
-		if (state == MatchState.STOPPED)
+		if (state == MatchState.STOPPED || state == MatchState.SELECTING)
 		{
 			event.replyError("There is no active session to stop");
 			return;
 		}
-		if (!event.getMember().equals(reader))
+		if (!event.getMember().equals(reader) && !event.getMember().hasPermission(Permission.ADMINISTRATOR))
 		{
-			event.replyWarning("You are not the reader");
+			event.replyWarning("You are not the reader or an admin");
 			return;
 		}
 		if (state != MatchState.READING)
@@ -144,7 +143,7 @@ public class Match
 	}
 	public void registerBuzz(CommandEvent event)
 	{
-		if (state == MatchState.STOPPED)
+		if (state == MatchState.STOPPED || state == MatchState.SELECTING)
 		{
 			event.replyError("There is no active session in this text channel");
 			return;
@@ -180,7 +179,7 @@ public class Match
 	}
 	public void registerScore(CommandEvent event, int toAdd)
 	{
-		if (state == MatchState.STOPPED)
+		if (state == MatchState.STOPPED || state == MatchState.SELECTING)
 		{
 			event.replyError("There is no active session in this text channel");
 			return;
@@ -246,7 +245,7 @@ public class Match
 	}
 	public void undoScore(CommandEvent event)
 	{
-		if (state == MatchState.STOPPED)
+		if (state == MatchState.STOPPED || state == MatchState.SELECTING)
 		{
 			event.replyError("There is no active session in this text channel");
 			return;
@@ -309,7 +308,7 @@ public class Match
 	}
 	public void withdrawBuzz(CommandEvent event)
 	{
-		if (state == MatchState.STOPPED)
+		if (state == MatchState.STOPPED || state == MatchState.SELECTING)
 		{
 			event.replyError("There is no active session in this text channel");
 			return;
@@ -352,7 +351,7 @@ public class Match
 	}
 	public void clearBuzzQueue(CommandEvent event)
 	{
-		if (state == MatchState.STOPPED)
+		if (state == MatchState.STOPPED || state == MatchState.SELECTING)
 		{
 			event.replyError("There is no active session in this text channel");
 			return;
@@ -374,7 +373,7 @@ public class Match
 	}
 	public void continueTU(CommandEvent event)
 	{
-		if (state == MatchState.STOPPED)
+		if (state == MatchState.STOPPED || state == MatchState.SELECTING)
 		{
 			event.replyError("There is no active session in this text channel");
 			return;
@@ -394,14 +393,14 @@ public class Match
 	}
 	public void changeReader(CommandEvent event, Member newReader)
 	{
-		if (state == MatchState.STOPPED)
+		if (state == MatchState.STOPPED || state == MatchState.SELECTING)
 		{
 			event.replyError("There is no active session in this text channel");
 			return;
 		}
-		if (!event.getMember().equals(reader))
+		if (!event.getMember().equals(reader) && !event.getMember().hasPermission(Permission.ADMINISTRATOR))
 		{
-			event.replyWarning("You are not the reader");
+			event.replyWarning("You are not the reader or an admin");
 			return;
 		}
 		if (state != MatchState.READING)
@@ -544,7 +543,7 @@ public class Match
 			}
 			pw.close();
 
-			String fileName = String.format("%s-%s %s--%s vs %s.csv", channel.getParent().getName().toUpperCase(), channel.getName(), reader.getEffectiveName(), teamList.get(0).getEffectiveName(), teamList.get(1).getEffectiveName());
+			String fileName = String.format("%s-%s %s--%s vs %s.csv", Objects.requireNonNull(channel.getParent()).getName().toUpperCase(), channel.getName(), reader.getEffectiveName(), teamList.get(0).getEffectiveName(), teamList.get(1).getEffectiveName());
 			channel.sendFile(tempScore, fileName).queue((message) -> tempScore.delete());
 		}
 		catch (IOException ex)
@@ -569,6 +568,10 @@ public class Match
 	public MatchState getState()
 	{
 		return state;
+	}
+	public void setState(MatchState state)
+	{
+		this.state = state;
 	}
 }
 class Buzz

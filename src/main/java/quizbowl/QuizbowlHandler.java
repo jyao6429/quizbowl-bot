@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 				event.replyWarning("There is currently an ongoing match!");
 				return;
 			}
+			match.setState(Match.MatchState.SELECTING);
 		}
 		else
 		{
@@ -53,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 				.useNumbers()
 				.useCancelButton(false)
 				.setEventWaiter(waiter)
-				.setTimeout(15, TimeUnit.MINUTES)
+				.setTimeout(1, TimeUnit.MINUTES)
 				.setDescription("#" + event.getChannel().getName() + "\nPlease react to the number corresponding to your team")
 				.setColor(Color.WHITE);
 		for (Team temp : teamList)
@@ -133,7 +134,7 @@ import java.util.concurrent.TimeUnit;
 				event.replySuccess("Added " + m.getAsMention() + " to team " + currentTeam.getName());
 			}
 		})
-		.setCancel((msg) -> {})
+		.setCancel(msg -> match.setState(Match.MatchState.STOPPED))
 		;
 		builder.build().display(match.getChannel());
 	}
@@ -152,11 +153,32 @@ import java.util.concurrent.TimeUnit;
 		*/
 		if (matches.containsKey(event.getTextChannel()))
 		{
+			if (matches.get(event.getTextChannel()).getState() != Match.MatchState.STOPPED)
+			{
+				event.replyWarning("There is currently an ongoing match!");
+				return;
+			}
+			if (numOfBonuses == 1)
+			{
+				event.replySuccess("Starting session with 1 bonus");
+			}
+			else
+			{
+				event.replySuccess("Starting session with " + numOfBonuses + " bonuses");
+			}
 			matches.get(event.getTextChannel()).initializeMatch(event, false, numOfBonuses, false);
 			matches.get(event.getTextChannel()).goToNextTU();
 		}
 		else
 		{
+			if (numOfBonuses == 1)
+			{
+				event.replySuccess("Starting session with 1 bonus");
+			}
+			else
+			{
+				event.replySuccess("Starting session with " + numOfBonuses + " bonuses");
+			}
 			matches.put(event.getTextChannel(), new Match(event, false, numOfBonuses, false));
 			matches.get(event.getTextChannel()).goToNextTU();
 		}

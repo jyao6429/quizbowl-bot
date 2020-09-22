@@ -23,19 +23,10 @@ public class ReadCommand extends Command
 				event.replyError("Please specify a positive number of bonuses");
 				return;
 			}
-			if (numOfBonuses == 1)
-			{
-				event.replySuccess("Starting session with 1 bonus");
-			}
-			else
-			{
-				event.replySuccess("Starting session with " + numOfBonuses + " bonuses");
-			}
 			QuizbowlHandler.startMatch(event, numOfBonuses);
 		}
 		catch (NumberFormatException ex)
 		{
-			event.replySuccess("Starting session with 0 bonuses");
 			QuizbowlHandler.startMatch(event);
 		}
 	}
