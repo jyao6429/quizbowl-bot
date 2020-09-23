@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 				.useNumbers()
 				.useCancelButton(false)
 				.setEventWaiter(waiter)
-				.setTimeout(1, TimeUnit.MINUTES)
+				.setTimeout(15, TimeUnit.MINUTES)
 				.setDescription("#" + event.getChannel().getName() + "\nPlease react to the number corresponding to your team")
 				.setColor(Color.WHITE);
 		for (Team temp : teamList)
