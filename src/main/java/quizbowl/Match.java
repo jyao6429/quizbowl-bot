@@ -80,9 +80,9 @@ public class Match
 		playerList = new ArrayList<>();
 		teamList = new ArrayList<>();
 	}
-	public void stopMatch(CommandEvent event)
+	public void stopMatch(CommandEvent event, boolean force)
 	{
-		if (state == MatchState.STOPPED || state == MatchState.SELECTING)
+		if ((state == MatchState.STOPPED || state == MatchState.SELECTING) && !force)
 		{
 			event.replyError("There is no active session to stop");
 			return;
@@ -92,16 +92,19 @@ public class Match
 			event.replyWarning("You are not the reader or an admin");
 			return;
 		}
-		if (state != MatchState.READING)
+		if (state != MatchState.READING && !force)
 		{
 			event.replyWarning("Can't stop, someone has buzzed!");
 			return;
 		}
-		if (currentMatchEvents.isEmpty())
-			tossup--;
-		printScoreboard();
-		if (isTeam && teamList.size() == 2)
-			sendCSV(event);
+		if (!force)
+		{
+			if (currentMatchEvents.isEmpty())
+				tossup--;
+			printScoreboard();
+			if (isTeam && teamList.size() == 2)
+				sendCSV(event);
+		}
 		reader = null;
 		players = null;
 		playerList = null;
@@ -116,7 +119,10 @@ public class Match
 		isTeam = false;
 		isBounce = false;
 		state = MatchState.STOPPED;
-		event.replySuccess("Session stopped");
+		if (force)
+			event.replySuccess("Session forcefully stopped");
+		else
+			event.replySuccess("Session stopped");
 	}
 	public void goToNextTU()
 	{

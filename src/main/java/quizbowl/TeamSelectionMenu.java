@@ -177,7 +177,7 @@ import java.util.function.Consumer;
 					waitReactionOnly(m);
 				}
 			}
-		}, timeout, unit, () -> { m.delete().queue(); cancel.accept(m);});
+		}, timeout, unit, () -> { cancel.accept(m); m.delete().queue(); });
 	}
 	// This is where the displayed message for the TeamSelectionMenu is built.
 	private Message getMessage()

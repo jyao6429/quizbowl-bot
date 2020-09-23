@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 				.useNumbers()
 				.useCancelButton(false)
 				.setEventWaiter(waiter)
-				.setTimeout(15, TimeUnit.MINUTES)
+				.setTimeout(1, TimeUnit.MINUTES)
 				.setDescription("#" + event.getChannel().getName() + "\nPlease react to the number corresponding to your team")
 				.setColor(Color.WHITE);
 		for (Team temp : teamList)
@@ -183,11 +183,11 @@ import java.util.concurrent.TimeUnit;
 			matches.get(event.getTextChannel()).goToNextTU();
 		}
 	}
-	public static void stopMatch(CommandEvent event)
+	public static void stopMatch(CommandEvent event, boolean force)
 	{
 		if (matches.containsKey(event.getTextChannel()))
 		{
-			matches.get(event.getTextChannel()).stopMatch(event);
+			matches.get(event.getTextChannel()).stopMatch(event, force);
 		}
 		else
 		{

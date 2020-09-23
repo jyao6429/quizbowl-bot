@@ -9,13 +9,15 @@ public class StopCommand extends Command
 	public StopCommand()
 	{
 		this.name = "stop";
-		this.help = "stop reading";
+		this.help = "stop reading, with the option to forcefully stop";
+		this.arguments = "<force>";
 		this.aliases = new String[]{"end"};
 		this.guildOnly = true;
 	}
 
 	@Override protected void execute(CommandEvent event)
 	{
-		QuizbowlHandler.stopMatch(event);
+		boolean force = event.getArgs().toLowerCase().contains("force") || event.getArgs().toLowerCase().equals("f");
+		QuizbowlHandler.stopMatch(event, force);
 	}
 }
