@@ -60,8 +60,8 @@ public class Bot
 
 		// Add commands
 		client.addCommands(
-				new AboutCommand(Color.BLUE, "a quizbowl scorekeeping bot",
-						new String[]{"Read stuff","Buzz","Score stuff"},
+				new AboutCommand(Color.WHITE, "a quizbowl scorekeeping bot",
+					new String[]{"Scorekeeping!","Team matches!","Version 2.0.1", "GitHub: https://github.com/jyao6429/quizbowl-bot"},
 						RECOMMENDED_PERMS),
 				new ReadCommand(),
 				new MatchCommand(),
