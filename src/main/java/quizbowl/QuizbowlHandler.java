@@ -93,12 +93,12 @@ import java.util.concurrent.TimeUnit;
 					event.replyWarning(m.getAsMention() + " You are not the moderator!");
 					return;
 				}
+				msg.delete().queue();
 				match.initializeMatch(event, true, 3, false);
 				event.replySuccess("Starting match");
 				match.setTeamList(teamList);
 				match.setPlayers(players);
 				match.goToNextTU();
-				msg.delete().queue();
 				return;
 			}
 			Team currentTeam = teamList.get(i - 1);

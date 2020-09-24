@@ -2,11 +2,14 @@ package quizbowl;
 
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Menu;
+import com.sun.source.tree.ConditionalExpressionTree;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
+import net.dv8tion.jda.api.exceptions.ContextException;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.internal.utils.Checks;
@@ -167,13 +170,11 @@ import java.util.function.Consumer;
 				// but from 1 to number of choices. So the first choice will correspond to 1, the second
 				// choice to 2, etc.
 				action.accept(m, e);
-				if (getNumber(e.getReactionEmote().getName()) != choices.size())
-				{
-					e.getReaction().removeReaction(Objects.requireNonNull(e.getUser())).queue();
-					waitReactionOnly(m);
-				}
+				e.getReaction()
+				 .removeReaction(Objects.requireNonNull(e.getUser()))
+				 .queue(msg -> { waitReactionOnly(m); }, throwable -> {});
 			}
-		}, timeout, unit, () -> { cancel.accept(m); m.delete().queue(); });
+		}, timeout, unit, () -> { cancel.accept(m); m.delete().queue(msg -> {}, throwable -> {}); });
 	}
 	// This is where the displayed message for the TeamSelectionMenu is built.
 	private Message getMessage()
