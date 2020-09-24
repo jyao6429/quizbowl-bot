@@ -167,11 +167,7 @@ import java.util.function.Consumer;
 				// but from 1 to number of choices. So the first choice will correspond to 1, the second
 				// choice to 2, etc.
 				action.accept(m, e);
-				if (getNumber(e.getReactionEmote().getName()) == choices.size())
-				{
-					m.delete().queue();
-				}
-				else
+				if (getNumber(e.getReactionEmote().getName()) != choices.size())
 				{
 					e.getReaction().removeReaction(Objects.requireNonNull(e.getUser())).queue();
 					waitReactionOnly(m);

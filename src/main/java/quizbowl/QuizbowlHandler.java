@@ -98,6 +98,7 @@ import java.util.concurrent.TimeUnit;
 				match.setTeamList(teamList);
 				match.setPlayers(players);
 				match.goToNextTU();
+				msg.delete().queue();
 				return;
 			}
 			Team currentTeam = teamList.get(i - 1);
