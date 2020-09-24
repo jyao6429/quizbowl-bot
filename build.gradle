@@ -8,7 +8,7 @@ plugins
 
 mainClassName = 'bot.Bot'
 
-version '2.0.1'
+version '2.0.2'
 
 sourceCompatibility = 11
 
