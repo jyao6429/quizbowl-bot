@@ -491,7 +491,7 @@ public class Match
 	{
 		Collections.sort(playerList);
 		StringBuilder scores = new StringBuilder();
-		for (int i = 0; i < playerList.size(); i++)
+		for (int i = 0; i < (playerList.size() > 10 ? 10 : playerList.size()); i++)
 		{
 			Player currentPlayer = playerList.get(i);
 			scores.append(i + 1).append(". ").append(currentPlayer).append("\n");
