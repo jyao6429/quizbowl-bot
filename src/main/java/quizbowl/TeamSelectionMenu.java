@@ -2,17 +2,16 @@ package quizbowl;
 
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.menu.Menu;
-import com.sun.source.tree.ConditionalExpressionTree;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
-import net.dv8tion.jda.api.exceptions.ContextException;
-import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.internal.utils.Checks;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.time.OffsetDateTime;
@@ -160,6 +159,8 @@ import java.util.function.Consumer;
 	// Waits only for reaction input
 	private void waitReactionOnly(Message m)
 	{
+		Logger logger = LoggerFactory.getLogger(TeamSelectionMenu.class);
+
 		// This one is only for reactions
 		waiter.waitForEvent(MessageReactionAddEvent.class, e -> isValidReaction(m, e), e -> {
 			if (e.getReaction().getReactionEmote().getName().equals(CANCEL))
@@ -170,11 +171,15 @@ import java.util.function.Consumer;
 				// but from 1 to number of choices. So the first choice will correspond to 1, the second
 				// choice to 2, etc.
 				action.accept(m, e);
-				e.getReaction()
-				 .removeReaction(Objects.requireNonNull(e.getUser()))
-				 .queue(msg -> { waitReactionOnly(m); }, throwable -> {});
+				e.getReaction().removeReaction(Objects.requireNonNull(e.getUser())).queue(msg -> {
+					logger.info("ID: {} Successfully removed reaction from {}", m.getIdLong(), e.getUser().getAsTag());
+					waitReactionOnly(m);
+				}, throwable -> logger.info("ID: {} Failed to remove reaction from {}", m.getIdLong(), e.getUser().getAsTag()));
 			}
-		}, timeout, unit, () -> { cancel.accept(m); m.delete().queue(msg -> {}, throwable -> {}); });
+		}, timeout, unit, () -> {
+			cancel.accept(m);
+			m.delete().queue(msg -> logger.info("ID: {} Successfully deleted timed out menu", m.getIdLong()), throwable -> logger.warn("ID: {} Failed to delete timed out menu", m.getIdLong()));
+		});
 	}
 	// This is where the displayed message for the TeamSelectionMenu is built.
 	private Message getMessage()
@@ -185,13 +190,8 @@ import java.util.function.Consumer;
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < choices.size(); i++)
 			sb.append("\n").append(getEmoji(i)).append(" ").append(choices.get(i));
-		mbuilder.setEmbed(new EmbedBuilder().setTitle("Team Selection Menu")
-											.setColor(color)
-											.setDescription(description == null ? "" : description)
-											.addField("Choices", sb.toString(), false)
-											.setTimestamp(OffsetDateTime.now())
-											.setThumbnail("https://raw.githubusercontent.com/jyao6429/quizbowl-bot/master/images/qbat%20icon%20square.png")
-											.build());
+		mbuilder.setEmbed(new EmbedBuilder().setTitle("Team Selection Menu").setColor(color).setDescription(description == null ? "" : description).addField("Choices", sb.toString(), false).setTimestamp(OffsetDateTime.now())
+				.setThumbnail("https://raw.githubusercontent.com/jyao6429/quizbowl-bot/master/images/qbat%20icon%20square.png").build());
 		return mbuilder.build();
 	}
 	private boolean isValidReaction(Message m, MessageReactionAddEvent e)

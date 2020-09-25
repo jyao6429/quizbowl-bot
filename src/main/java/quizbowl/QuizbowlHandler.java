@@ -4,6 +4,8 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -27,6 +29,8 @@ import java.util.concurrent.TimeUnit;
 	}
 	public static void startTeamMatch(CommandEvent event, ArrayList<Team> teamList)
 	{
+		Logger logger = LoggerFactory.getLogger(QuizbowlHandler.class);
+
 		Match match;
 		if (matches.containsKey(event.getTextChannel()))
 		{
@@ -94,12 +98,13 @@ import java.util.concurrent.TimeUnit;
 					event.replyWarning(m.getAsMention() + " You are not the moderator!");
 					return;
 				}
-				msg.delete().queue();
 				match.initializeMatch(event, true, 3, false);
 				event.replySuccess("Starting match");
 				match.setTeamList(teamList);
 				match.setPlayers(players);
 				match.goToNextTU();
+				msg.delete().complete();
+				logger.info("ID: {} Successfully deleted menu for match start with reader {}", msg.getIdLong(), event.getAuthor().getAsTag());
 				return;
 			}
 			Team currentTeam = teamList.get(i - 1);
@@ -135,8 +140,17 @@ import java.util.concurrent.TimeUnit;
 				assert m != null;
 				event.replySuccess("Added " + m.getAsMention() + " to team " + currentTeam.getName());
 			}
+		}).setCancel(msg -> {
+			if (match.getState() == Match.MatchState.SELECTING)
+			{
+				match.setState(Match.MatchState.STOPPED);
+				event.replyWarning("Selection menu timed out after 15 min");
+			}
+			else
+			{
+				logger.error("ID: {} Menu timed out but state is not SELECTING", msg.getIdLong());
+			}
 		})
-		.setCancel(msg -> { if (match.getState() == Match.MatchState.SELECTING) match.setState(Match.MatchState.STOPPED); })
 		;
 		builder.build().display(match.getChannel());
 	}
