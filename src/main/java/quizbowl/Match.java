@@ -468,6 +468,10 @@ public class Match
 		players = players1;
 		playerList = new ArrayList<>(players.values());
 	}
+	public void setReader(Member r)
+	{
+		reader = r;
+	}
 	public static Points getPoints(int points, boolean isBonus)
 	{
 		switch (points)

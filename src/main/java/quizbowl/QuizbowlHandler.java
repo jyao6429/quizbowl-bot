@@ -48,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 			temp.setMatch(match);
 		}
 		match.setTeamList(teamList);
+		match.setReader(event.getMember());
 
 		TeamSelectionMenu.Builder builder = new TeamSelectionMenu.Builder()
 				.allowTextInput(false)
