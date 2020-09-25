@@ -493,6 +493,11 @@ public class Match
 
 	public void printScoreboard()
 	{
+		if (state == MatchState.STOPPED || state == MatchState.SELECTING)
+		{
+			channel.sendMessage("There is no active session in this text channel").queue();
+			return;
+		}
 		Collections.sort(playerList);
 		StringBuilder scores = new StringBuilder();
 		for (int i = 0; i < (playerList.size() > 10 ? 10 : playerList.size()); i++)

@@ -136,7 +136,7 @@ import java.util.concurrent.TimeUnit;
 				event.replySuccess("Added " + m.getAsMention() + " to team " + currentTeam.getName());
 			}
 		})
-		.setCancel(msg -> match.setState(Match.MatchState.STOPPED))
+		.setCancel(msg -> { if (match.getState() == Match.MatchState.SELECTING) match.setState(Match.MatchState.STOPPED); })
 		;
 		builder.build().display(match.getChannel());
 	}
